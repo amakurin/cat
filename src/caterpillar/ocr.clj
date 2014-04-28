@@ -70,6 +70,19 @@
     (.drawImage g image 0 0 (.getWidth result) (.getHeight result) Color/WHITE nil)
     result))
 
+(defn read-image-with-crop [src bottom-crop min-size]
+  (let [image (ImageIO/read src)
+        width (.getWidth image nil)
+        height (.getHeight image nil)]
+    (if (or (< width min-size)(< height min-size))
+      nil
+      (let [image (ImageIO/read src)
+            result (BufferedImage. width(- height bottom-crop) BufferedImage/TYPE_INT_RGB)
+            g (.createGraphics result)]
+        (.drawImage g (.getSubimage image 0 0 (.getWidth result) (.getHeight result))
+                    0 0 (.getWidth result) (.getHeight result) Color/WHITE nil)
+        result))))
+
 (defn buf-to-file [{:keys [path format buf]}]
   (let [f (File. path)]
     (ImageIO/write buf (name format) f)))

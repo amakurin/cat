@@ -9,6 +9,9 @@
                    :subname "//localhost/caterpillar"
                    :user "caterpillar"
                    :password "111111"
-                   :delimiters "`"}}
+                   :delimiters "`"}
+        :crawl-mages "resources/img/"
+        }
+
   }
  }

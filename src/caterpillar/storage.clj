@@ -43,4 +43,3 @@
   (let [o (prepare-data o persistent-fields)]
     (insert entity (values o))))
 
-

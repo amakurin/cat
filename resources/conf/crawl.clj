@@ -6,7 +6,8 @@
                     :args {:attr :href}}]}
      {:id :src-date
       :selector [:div.info-date]
-      :processors [{:func :as-text}]}
+      :processors [{:func :as-text}
+                   {:func :get-date-time}]}
 
      {:id :src-id
       :selector [:a.item-link]
@@ -107,7 +108,8 @@
                    ]}
      {:id :src-date
       :selector [:p.adv_data]
-      :processors [{:func :as-text}]
+      :processors [{:func :as-text}
+                   {:func :get-date-time}]
       }
      {:id :target
       :processors [{:func :set-value
@@ -120,17 +122,18 @@
       :selector [:td :div.add_title_wrap :a.add_title]
       :processors [{:func :as-text}]
       }
+
      {:id :appartment-type
-      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 1}}] :p]
+      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 1}}] :div.flat_p_txt]
       :processors [{:func :as-text}]
       }
 
      {:id :total-area
-      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 2}}] :p]
+      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 2}}] :div.flat_p_txt]
       :processors [{:func :as-text}]
       }
      {:id :floor
-      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 3}}] :p]
+      :selector [:div.flat_prop :> [:div.flat_p {:func :nth-of-type :args {:n 3}}] :div.flat_p_txt]
       :processors [{:func :as-text}]
       }
      ]
@@ -152,7 +155,7 @@
                             :processors [{:func :get-attribute
                                           :args {:attr :src}}
                                          {:func :recognize-image-text}
-                                         {:func :get-phones}]}}}
+                                         {:func :get-phones-spec}]}}}
                    {:func :apply-concat}]}
      {:id :phone
       :selector [:div.content_left :p.text]
@@ -173,6 +176,10 @@
       :collection? true
       :processors [{:func :get-attribute
                     :args {:attr :src}}]
+      }
+     {:id :person-name
+      :selector [[:ul.form_info {:func :nth-of-type :args {:n 1}}] :li [:p {:func :nth-of-type :args {:n 2}}]]
+      :processors [{:func :as-text}]
       }
      {:id :person-type
       :selector [:div.hide :div.additional-features]
@@ -273,7 +280,7 @@
     }
    :tasks
    {
-   :dmir-samara-agents
+    :dmir-samara-agents
     {:sched "1 /1 * * * * *"
      :opts {:target :dmir-list
             :data
@@ -287,11 +294,35 @@
                       :split-by [:phone]
                       :persistent-fields-except [:src-id]
                       }]
-             :pause [1 1]}
+             :pause [1 1]
+             }
             }}
 
-    :avito-samara-kv
+    :avito-samara-room
     {:sched "20 /1 * * * * *"
+     :opts {:target :avito-list
+            :data
+            {:url "http://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
+             :url-param #{1}}
+            :merge-data {:city :smr :appartment-type 8}
+            :processing
+            {:steps [{:storage-entity :agents
+                      :store-option :so-insert-or-update
+                      :insert-or-update-key [:phone]
+                      :split-by [:phone]
+                      :filter-by {:person-type :agent}
+                      :persistent-fields [:target :phone :url :city]
+                      }
+                     {:storage-entity :ads
+                      :filter-by {:person-type :owner}
+                      :as-edn-to :raw-edn
+                      :persistent-fields [:src-id :target :city :raw-edn :url ]
+                      }]
+             ;:pause [1 1]
+             }
+            }}
+    :avito-samara-kv
+    {:sched "30 /1 * * * * *"
      :opts {:target :avito-list
             :data
             {:url "http://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
@@ -310,10 +341,34 @@
                       :as-edn-to :raw-edn
                       :persistent-fields [:src-id :target :city :raw-edn :url ]
                       }]
-             :pause [1 1]}
+             ;:pause [1 1]
+             }
+            }}
+    :irr-samara-room
+    {:sched "40 /1 * * * * *"
+     :opts {:target :irr-list
+            :data
+            {:url "http://samara.irr.ru/real-estate/rooms-rent/search/rent_period=3674653711/list=list/page%s/"
+             :url-param #{1}}
+            :merge-data {:city :smr :appartment-type 8}
+            :processing
+            {:steps [{:storage-entity :agents
+                      :store-option :so-insert-or-update
+                      :insert-or-update-key [:phone]
+                      :split-by [:phone]
+                      :filter-by {:person-type :agent}
+                      :persistent-fields [:target :phone :url :city]
+                      }
+                     {:storage-entity :ads
+                      :filter-by {:person-type :owner}
+                      :as-edn-to :raw-edn
+                      :persistent-fields [:src-id :target :city :raw-edn :url ]
+                      }]
+             ;:pause [1 1]
+             }
             }}
     :irr-samara-kv
-    {:sched "40 /1 * * * * *"
+    {:sched "50 /1 * * * * *"
      :opts {:target :irr-list
             :data
             {:url "http://samara.irr.ru/real-estate/rent/search/rent_period=3674653711/list=list/page%s/"
@@ -332,7 +387,8 @@
                       :as-edn-to :raw-edn
                       :persistent-fields [:src-id :target :city :raw-edn :url ]
                       }]
-             :pause [1 1]}
+             ;:pause [1 1]
+             }
             }}
     }
    }

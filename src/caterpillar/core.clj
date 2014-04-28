@@ -8,10 +8,8 @@
    [environ.core :refer [env]]
    [cronj.core :as sched]
    [cronj.data.scheduler :as ts]
-   [clojure.core.async :as async :refer [chan >! <! >!! <!! go go-loop thread timeout]]
    [taoensso.timbre :as timbre]
-   )
-  )
+   ))
 
 (def sys (atom {}))
 
@@ -90,20 +88,34 @@
      :opts (assoc opts :task-id task-id)}))
 
 (defn init []
-  (store/initialize (env :database))
-  (reset! sys {:conf (conf/file-config (env :crawl-config))})
-  (let [conf (get-config)
-        tasks (map (fn [[k v]] (create-task k))(:tasks conf))]
-    (swap! sys assoc :cronj (sched/cronj :entries tasks))))
+  (if (:started @sys)
+    (timbre/info "Crawl already started. Use restart or stop.")
+    (do
+      (timbre/info "Crawl initialization...")
+      (store/initialize (env :database))
+      (reset! sys {:conf (conf/file-config (env :crawl-config))})
+      (let [conf (get-config)
+            tasks (map (fn [[k v]] (create-task k))(:tasks conf))]
+        (swap! sys assoc :cronj (sched/cronj :entries tasks))))))
 
 (defn start []
-  (if-let [cronj (:cronj @sys)]
-    (sched/start! cronj)
-    (do (init)(start))))
+  (if (:started @sys)
+    (timbre/info "Crawl already started.")
+    (do
+      (timbre/info "Crawl starting...")
+      (if-let [cronj (:cronj @sys)]
+        (sched/start! cronj)
+        (do (init)(start)))
+      (swap! sys assoc :started true)
+      (timbre/info "Crawl started."))))
 
 (defn stop []
-  (when-let [cronj (:cronj @sys)]
-    (sched/stop! cronj)))
+  (if (:started @sys)
+    (do
+      (when-let [cronj (:cronj @sys)] (sched/stop! cronj))
+      (timbre/info "Crawl stopped."))
+    (timbre/info "Crawl already stopped."))
+  (swap! sys dissoc :started))
 
 (defn restart []
   (stop)

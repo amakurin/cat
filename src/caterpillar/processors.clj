@@ -11,10 +11,12 @@
    [clj-time.core :as tc]
    [clj-time.format :as tf]
    [clj-time.local :as tl]
+   [environ.core :refer [env]]
    )
   (:import
    java.io.StringReader
    java.io.ByteArrayInputStream
+   java.net.URL
    [org.apache.commons.codec.binary Base64 Base32 Hex]))
 
 (def local-context (tools/thread-local (atom {})))
@@ -143,6 +145,22 @@
 
 (defn
   ^{:accessible-online? true}
+  save-image-with-crop [url bottom-crop]
+  (try
+    (if-let [buf (ocr/read-image-with-crop (URL. url) bottom-crop (or (env :crawl-mages-min-size) 100))]
+      (let [path (or (env :crawl-mages) "resources/img/")
+            file-name (str (s/replace (tools/uuid) #"\-" "") ".jpg")]
+        (ocr/buf-to-file
+         {:buf buf
+          :path (str path file-name)
+          :format :jpg
+          })
+        file-name)
+      nil)
+    (catch Exception e nil)))
+
+(defn
+  ^{:accessible-online? true}
   zipmap-with [resource labels]
   (zipmap labels resource))
 
@@ -173,10 +191,34 @@
       (s/replace #"\D" "")
       (#(if (empty? %) nil (Integer. %)))))
 
+(defmulti deep-as-text class)
+
+(defmethod deep-as-text clojure.lang.LazySeq
+  [resource]
+  (loop [inp resource res ""]
+    (if-let [cur (first inp)]
+      (recur (rest inp) (str res (deep-as-text cur)))
+      res)))
+
+(defmethod deep-as-text clojure.lang.PersistentArrayMap
+  [resource] (deep-as-text (:content resource)))
+
+(defmethod deep-as-text java.lang.String
+  [resource]
+  (let [s (s/replace resource #"^[\s\n\t]+$" "")]
+    (if (seq s)
+      (str " " s) "")))
+
+(defmethod deep-as-text :default
+  [resource] "")
+
 (defn
   ^{:accessible-online? true}
   as-text [resource]
-  (html/text resource))
+  (-> (deep-as-text resource)
+      (s/replace #"^[\s\n]+|[\s\n]+$" "")
+      (s/replace #"\t+" " ")
+      ))
 
 (defn
   ^{:doc
@@ -209,15 +251,31 @@
     "Extract phones from string
     raw-value: string"
     :accessible-online? true}
-  get-phones [resource]
+  get-phones-spec [resource]
   (->> resource
       (#(s/replace % #"\s|\-|\.|\\|/|\*|\`|\'|\"|\+" ""))
-      (re-seq #"[78]?\(?9\d{2}\)?\d{7}")
+      (re-seq #"[78]??\(?9\d{2}\)?\d{7}|\d{7}")
       (map get-phone)))
 
-;(get-phones
-; "квартира чистая,с удобствами,меблированная ТЕЛ.9*3-7`7'9.7+0.0.1.3"
-; )
+(defn
+  ^{:doc
+    "Extract phones from string
+    raw-value: string"
+    :accessible-online? true}
+  get-phones [resource]
+  (->> resource
+       (re-seq
+        #"(?iux)
+        (?<![\d])
+        (?: \b(?: т|тел)[\.\:]?\s?)?
+        (?: \+\s?)?
+        (?: [78][\.\-\s]?)?
+        (?: \(\d{3}\)\s?|(?: \d\s?[\.\-]?\s?){3})
+        (?: (?: \d\s?[\.\-\s]?\s?){6,7}|(?: \d\s?[\.\-\s]?\s?){4})
+        \b(?![\d])"
+        )
+       (map get-phone)
+       ))
 
 (defn
   ^{:doc
