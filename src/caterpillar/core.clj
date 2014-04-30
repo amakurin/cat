@@ -4,6 +4,7 @@
    [caterpillar.config :as conf]
    [caterpillar.storage :as store]
    [caterpillar.tools :as tools]
+   [caterpillar.errors :as err]
    [net.cgrand.enlive-html :as html]
    [environ.core :refer [env]]
    [cronj.core :as sched]
@@ -23,17 +24,9 @@
         r (+ x (rand-int (inc (- y x))))]
     (Thread/sleep r)))
 
-(defn log-error [{:keys [e] :as error-descriptor}]
-  (timbre/error error-descriptor))
-
-(defmacro with-try [context & body]
- 	  `(try
- 	    ~@body
-       (catch Exception e# (log-error (merge (or ~context {}) {:e e# :message (.getMessage e#)})))))
-
 (defn seen? [{:keys [src-id target] :as link}]
   (assert (and src-id target) "Link should be map of at least :src-id :target.")
-  (with-try {:step :seen-lookup :link link}
+  (err/with-try {:step :seen-lookup :link link}
     (store/exists?! (select-keys link [:src-id :target]) :seen)))
 
 (defn do-step [link {:keys [storage-entity
@@ -53,7 +46,7 @@
                   (tools/do-split-by split-by)
                   (tools/do-filter-by filter-by))]
     (doseq [link links]
-      (with-try {:step :do-step :link link :opts opts}
+      (err/with-try {:link link :opts opts}
         (cond (= store-option :so-insert-or-update)
               (store/insert-or-update link
                                       storage-entity
@@ -65,7 +58,7 @@
                                  persistent-fields))))))
 
 (defn process-link [{:keys [target] :as link} {:keys [merge-data processing] :as opts}]
-  (let [link (if target (with-try {:step :process-link :link link :opts opts}
+  (let [link (if target (err/with-try {:link link :opts opts}
                           (proc/process-target target link (get-config))) link)
         link (merge link merge-data)
         {:keys [steps pause]} processing]
@@ -74,7 +67,7 @@
     (when pause (random-sleep pause))))
 
 (defn crawl-handler [t {:keys [task-id target data processing] :as opts}]
-  (let [links (with-try {:step :process-link :link data :opts opts}
+  (let [links (err/with-try {:link data :opts opts}
                 (proc/process-target target data (get-config)))]
     (timbre/info task-id " processed target "target ", found links count: " (count links))
     (doseq [link links]

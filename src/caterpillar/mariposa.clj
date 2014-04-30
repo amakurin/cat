@@ -5,6 +5,7 @@
    [caterpillar.config :as conf]
    [caterpillar.storage :as store]
    [caterpillar.tools :as tools]
+   [caterpillar.errors :as err]
    [environ.core :refer [env]]
    [cronj.core :as sched]
    [cronj.data.scheduler :as ts]
@@ -13,10 +14,16 @@
    ))
 
 ;; (re-seq
-;; #"(?iux)\b(?:страховой|страх\.?|авансовый)?\s?(?:депозит|взнос|залог)
-;;      |посл\.?(?:ед\.?)?(?:ни[йе])?\s?мес\.?(?:[яе]ц)?ы?\b"
+;; #"(?iux)\bот\s?собственника|[cс]обственник(?:ом)?\b"
 
-;;  "рвый месяц + страховой депозит 19 000 (Собственник)"
+;;  "CОБСТВЕННИК
+;; Адрес: Октябрьский район, ул. Ново-Садовая, 271 /Советской Армии
+;; Ориентир: Загородный парк, гостиница «Ренесанс».
+;; Этаж/этажность: 8/17 (2 лифта)
+;; Площадь: 68,3 кв.м,  2 раздельные комнаты: 16,3 кв.м, 19,9 кв.м., кухня 12 кв.м, ванная с туалетом раздельные, гардеробная 2,2 кв.м., застекленная лоджия из кухни и комнаты, застекленный балкон из комнаты
+;; Мебель: угловой раскладной диван, стенка, тумба под телевизор, двухспальная кровать, тумбочки, прихожая, кухонный гарнитур, стол, стулья
+;; Техника:  холодильник, стиральная машина автомат, электрическая плита
+;; Квартира с новым ремонтом, никто н"
 ;;  )
 
 (defn new-entity [{:keys [t v o p] :or {p 1.} :as entity}]
@@ -367,34 +374,33 @@
 (defn correct-person-name [item]
   (assoc item :person-name ((:dict-names @sys) (:person-name item))))
 
-(defn extract-handler [t {:keys [task-id storage-entity] :as opts}]
+(defn
+  ^{:task-handler? true}
+  extract-handler [t {:keys [task-id storage-entity] :as opts}]
   (locking (get-lock task-id)
-    (try
     (let [conf (get-config)
-          extracted (->>
-                      (select storage-entity (where {:extracted 0}))
-                      (map (fn [x] [(:id x) (->> (:raw-edn x)
-                                                 read-string
-                                                 (process-item conf)
-                                                 correct-person-name)])))
-          ]
-
-     (doseq [[id edn] extracted]
-        (update storage-entity
-                (set-fields {:extracted 1
-                             :extracted-edn (pr-str edn)})
-                (where {:id id})))
-      (timbre/info "Mariposa extract-handler procceed count: " (count extracted)))
-      (catch Exception e (timbre/error e "Error during extraction: " (.getMessage e))))
-  ))
+          found (select storage-entity (fields :id :raw-edn) (where {:extracted 0}))]
+      (doseq [{:keys [id raw-edn] :as item} found]
+        (err/with-try {:link-id id}
+                      (let [edn (->> raw-edn
+                                     read-string
+                                     (process-item conf)
+                                     correct-person-name)]
+                        (update storage-entity
+                                (set-fields {:extracted 1
+                                             :extracted-edn (pr-str edn)})
+                                (where {:id id})))))
+      (timbre/info "Mariposa extract-handler procceed count: " (count found)))))
 
 ;; (time
 ;;  (extract-handler nil {:task-id :sdf :storage-entity :ads-bu})
 ;; )
 
-(->> (select :ads-bu (fields :id))
-     (take 100)
-     (map #(update :ads-bu (set-fields {:extracted 0})(where {:id (:id %)}))))
+;; (select :ads-bu (fields [:id :raw-edn]) (where {:extracted 0}))
+
+;; (->> (select :ads-bu (fields :id))
+;;      (take 100)
+;;      (map #(update :ads-bu (set-fields {:extracted 0})(where {:id (:id %)}))))
 
 (defn create-task [task-id conf]
   (let [{:keys [sched opts]:as task-conf} (get-in conf [:tasks task-id])]

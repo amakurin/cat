@@ -2,6 +2,15 @@
 
 (defn up []
   [
+   "CREATE TABLE `errors` (
+   `id` bigint(20) NOT NULL AUTO_INCREMENT
+   ,`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+   ,`subsystem` varchar(100) NOT NULL
+   ,`message` varchar(1000) NOT NULL
+   ,`context` text NULL
+   ,PRIMARY KEY (`id`)
+   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='errors collector'"
+
    "CREATE TABLE IF NOT EXISTS `seen` (
    `src-id` varchar(40) NOT NULL COMMENT 'id on source'
    ,`target` varchar(40) NOT NULL COMMENT 'crawler target'
@@ -112,6 +121,61 @@
    (0, ':studio', 'раздельный')
    ,(1, ':appartment', 'совмещенный')
    "
+
+   "CREATE TABLE `pub` (
+   ,`id` bigint(20) NOT NULL
+   ,`id` bigint(20) NOT NULL
+   ,`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'creation date of record',
+   ,`src-date` datetime DEFAULT NULL
+   ,`city` smallint(6) DEFAULT NULL
+   ,`appartment-type` smallint(6) DEFAULT NULL
+   ,`floor` smallint(6) DEFAULT NULL
+   ,`floors` smallint(6) DEFAULT NULL
+   ,`price` decimal(10,0) DEFAULT NULL
+   ,`person-name` varchar(200) DEFAULT NULL
+   ,`phone` varchar(200) NOT NULL
+   ,`address` varchar(300) DEFAULT NULL
+   ,`district` smallint(6) DEFAULT NULL
+   ,`metro` smallint(6) DEFAULT NULL
+   ,`lat` varchar(60) DEFAULT NULL
+   ,`lng` varchar(60) DEFAULT NULL
+   ,`total-area` decimal(5,2) DEFAULT NULL
+   ,`living-area` decimal(5,2) DEFAULT NULL
+   ,`kitchen-area` decimal(5,2) DEFAULT NULL
+   ,`toilet` smallint(6) DEFAULT NULL
+   ,`building-type` smallint(6) DEFAULT NULL
+   ,`description` varchar(2000) DEFAULT NULL
+   ,`imgs` varchar(2000) DEFAULT NULL
+
+   ,`deposit` tinyint(1) DEFAULT NULL
+   ,`counters` tinyint(1) DEFAULT NULL
+   ,`plus-utilities` tinyint(1) DEFAULT NULL
+   ,`plus-electricity` tinyint(1) DEFAULT NULL
+   ,`plus-water` tinyint(1) DEFAULT NULL
+   ,`plus-gas` tinyint(1) DEFAULT NULL
+
+   ,`balcony` tinyint(1) DEFAULT NULL
+   ,`loggia` tinyint(1) DEFAULT NULL
+   ,`bow-window` tinyint(1) DEFAULT NULL
+
+   ,`furniture` tinyint(1) DEFAULT NULL
+   ,`internet` tinyint(1) DEFAULT NULL
+   ,`tv` tinyint(1) DEFAULT NULL
+   ,`frige` tinyint(1) DEFAULT NULL
+   ,`washer` tinyint(1) DEFAULT NULL
+   ,`conditioner` tinyint(1) DEFAULT NULL
+
+   ,`parking` tinyint(1) DEFAULT NULL
+
+   ,`intercom` tinyint(1) DEFAULT NULL
+   ,`security` tinyint(1) DEFAULT NULL
+   ,`concierge` tinyint(1) DEFAULT NULL
+
+   ,`only-russo` tinyint(1) DEFAULT NULL
+   ,`kids` tinyint(1) DEFAULT NULL
+   ,`pets` tinyint(1) DEFAULT NULL
+   ,`addiction` tinyint(1) DEFAULT NULL
+   ) MyISAM DEFAULT CHARSET=utf8 COMMENT='to publish'"
    ])
 
 (defn down []

@@ -39,7 +39,7 @@
         (update entity (set-fields o)(where k))
         (insert entity (values o))))))
 
-(defn insert-only [o entity persistent-fields]
+(defn insert-only [o entity & [persistent-fields]]
   (let [o (prepare-data o persistent-fields)]
     (insert entity (values o))))
 
