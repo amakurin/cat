@@ -375,7 +375,7 @@
   (assoc item :person-name ((:dict-names @sys) (:person-name item))))
 
 (defn
-  ^{:task-handler? true}
+  ^{:task-handler true}
   extract-handler [t {:keys [task-id storage-entity] :as opts}]
   (locking (get-lock task-id)
     (let [conf (get-config)

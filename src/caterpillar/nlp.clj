@@ -57,3 +57,10 @@
        (re-seq #"\p{IsCyrillic}+|\w+")
        (map #(-> % s/trim s/lower-case))
        (some #(levenshtein-match? % semantics))))
+
+(defn naive-word-form [norm-form word-case]
+  (let [rules {#"а$"
+               {:genitivus "и" :dativus "е" :accusativus "у" :ablativus "ой" :oraepositionalis "е"}
+               #"ия$" {:genitivus "ии" :dativus "ии" :accusativus "ию" :ablativus "ей" :oraepositionalis "ии"}
+               } ]
+  (reduce (fn [s [rk rv]] (s/replace s rk (word-case rv))) norm-form rules)))

@@ -29,10 +29,9 @@
 (defn prepend-base-url [url base]
   (if (base-url url) url (str base url)))
 
-
-(defn list-functions [ns]
+(defn get-funcs [ns metakey]
   (->> (ns-publics (symbol ns))
-       (filter (fn [[k v]] (:accessible-online? (meta v))))
+       (filter (fn [[k v]] (metakey (meta v))))
        (map (fn [[k v]]
               (let [{:keys [doc arglists]} (meta v)]
                 [(keyword k)
@@ -41,6 +40,9 @@
                   :arglists arglists
                   }])))
        (into {})))
+
+(defn list-functions [ns]
+  (get-funcs ns :accessible-online?))
 
 (defn ^{:dont-test "Used in impl of thread-local"}
   thread-local*
@@ -161,3 +163,28 @@
   (if (and (map? filt) (seq filt))
     (filter (fn [item] (every? (fn [[fk fv]] (= fv (fk item))) filt))data)
     data))
+
+(defn ru-translit [st]
+  (let [alphabet
+        {\р "r", \с "s", \т "t", \у "u", \ф "f", \х "h", \ц "c", \ч "ch", \ш "sh", \щ "sh", \ъ "'",
+         \ы "y", \ь "'", \э "e", \ю "u", \я "ya", \а "a", \б "b", \ё "e", \в "v", \г "g", \д "d",
+         \е "e", \ж "zh", \з "z", \и "i", \й "i", \к "k", \л "l", \м "m", \н "n", \о "o", \п "p"}]
+    (->> st s/lower-case (map #(if-let [letter (get alphabet %)] letter %)) (apply str))))
+
+(defn to-basex [value]
+  (let [dict [\B \C \D \F \G \H \J \K \L \M \N \P \Q \R \S \T
+              \V \W \X \Y \Z \b \c \d \f \g \h \j \k \l \m \n \p \q \r \s \t \v \w \x \y \z]
+        base (count dict)]
+    (if (= 0 value) "0"
+      (loop [remaining value exponent 1 result []]
+        (if (= 0 remaining)
+          (->> result reverse (apply str))
+          (let [a (long (Math/pow base exponent))
+                b (mod remaining a)
+                c (Math/pow base (dec exponent))
+                d (/ b c)]
+            (recur (- remaining b) (inc exponent) (conj result (get dict (long d))))
+            ))))))
+
+
+

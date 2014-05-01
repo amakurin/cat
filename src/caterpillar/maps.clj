@@ -78,27 +78,11 @@
          (mapcat identity)
          )))
 
-(time
-(let [res (proc/to-resource (slurp "resources/samara.xml"))]
-  (->>
-    (get-rel-nodes res "285954")
-;;     (reduce (fn [x y] (if-let [lst (peek x)]
-;;                         (if (< (dist-from lst y) 1) x (conj x y))
-;;                         [y]))
-;;             [])
-   vec
-;;     (map (fn [r c] (str (first c)", "(second c) ", \"" r "\""))(range))
-;;     (map println)
-;;    (inside? [53.1853104 50.1498413])
-;;   (inside? [53.1836645 50.098772])
-   (inside? [53.373092 50.186732])
-;;    count
-   )
- ))
 
-[[53.3250341M 50.1277392M]
-
- [53.5484321M 49.8446365M]]
+;; (time
+;; (let [res (proc/to-resource (slurp "resources/samara.xml"))]
+;;   (get-district [53.1836645 50.098772] res)
+;; ))
 
 (defn- crossing-number
   "Determine crossing number for given point and segment of a polygon.
@@ -119,5 +103,3 @@
                                             (nth polygon (+ n
                                             1))])))))
 
-[53.1853104 50.1498413]
-(inside? [1 0] [[1 1][1 -1][-1 -1][-1 1][1 1]])

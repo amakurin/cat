@@ -16,62 +16,18 @@
    [clj-time.local :as tl]
    ))
 
-(def settings
-  {:fields
-   {:by-fact [0 0.9]
-    :to-agent [0 0.5]
-    :percent [0 0.5]
-    :comission [-0.4 0.4]
-    :advert-marker [0 0.6]
-    :absurd-phone [0 0.8]
-    :owner [0.2 -0.4]
-    :middleman [-0.2 0]
-    :distrub [-0.1 0]
-    }
-   })
-
-(defn get-rate[input]
-  (let [weights (->> (:fields settings)
+(defn get-rate[input rate-weights]
+  (let [weights (->> rate-weights
                      (mapcat (fn [[k [f t]]] [[[k false] f]
                                               [[k true] t]
                                               [[k nil] 0]]))
-                     (into {}))
-        ]
+                     (into {}))]
     (->> (:fields settings)
          keys
          (map (fn [k] [k (k input)]))
          (map #(get weights %))
          (reduce +)
-         );weights
-    ))
-
-(get-rate {:by-fact true
-           :owner true
-           :middleman false})
-
-(->>
-(select :ads (where {:extracted 1}))
-(map #(->> % :extracted-edn read-string))
-;(map (fn [x] [(get-rate x) x]))
-;(filter #(and (> (first %) 0.3)(< (first %) 0.7)))
-;(filter #(and (< (first %) 0.5)))
-;(filter #(and (> (first %) 0.5)))
-;; (filter #(or (nil? (:lat %))
-;;              (nil? (:lng %))))
- count
-;; (map (fn [[r o]]
-;;        (println "===============")
-;;        (println r)
-;;        (println o)
-;;        ))
-
- )
-
-(tf/show-formatters)
-(exec-raw ["SELECT *
-           FROM ads
-           WHERE created > ( CURRENT_DATE - INTERVAL 1 WEEK )"]
-          :results)
+         )))
 
 (defn count-distinct [coll]
   (->> coll (group-by :src-id))
@@ -81,7 +37,7 @@
  (select :ads (fields :id :src-id :target :extracted-edn :classified)
          (where  {:created [> (tf/unparse (tf/formatters :mysql)
                                           (tc/minus (tl/local-now)
-                                                    (tc/days 4)))]
+                                                    (tc/days 6)))]
                   :extracted 1}))
  (mapcat (fn [{:keys [id src-id extracted-edn classified] :as x}]
         (let [extracted (read-string extracted-edn)]

@@ -31,5 +31,21 @@
         :mariposa-dict-names "dict-names.clj"
         :crawl-mages "resources/img/"
         :crawl-mages-min-size 100
+        :subsystems [{:id :caterpillar
+                      :sys-name "Caterpillar"
+                      :sys-ns caterpillar.core
+                      :config-file "conf/crawl.clj"}
+
+                     {:id :mariposa
+                      :sys-name "Mariposa"
+                      :sys-ns caterpillar.mariposa
+                      :config-file "conf/extract.clj"}
+
+                     {:id :hormiga
+                      :sys-name "Hormiga"
+                      :sys-ns caterpillar.publisher
+                      :config-file "conf/publish.clj"}
+
+                     ]
         }
   :main caterpillar.core)
