@@ -27,7 +27,9 @@
     (catch java.net.MalformedURLException e nil)))
 
 (defn prepend-base-url [url base]
-  (if (base-url url) url (str base url)))
+  (cond (base-url url) url
+        (re-find #"^//" url) (str (.getProtocol (URL. base)) ":" url)
+        :else (str base url)))
 
 (defn get-funcs [ns metakey]
   (->> (ns-publics (symbol ns))

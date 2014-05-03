@@ -5,8 +5,8 @@
    "CREATE TABLE IF NOT EXISTS `errors` (
    `id` bigint(20) NOT NULL AUTO_INCREMENT
    ,`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-   ,`subsystem` varchar(100) NOT NULL
-   ,`message` varchar(1000) NOT NULL
+   ,`subsystem` varchar(100) DEFAULT NULL
+   ,`message` varchar(1000) DEFAULT NULL
    ,`context` longtext NULL
    ,PRIMARY KEY (`id`)
    ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='errors collector'"
@@ -41,11 +41,12 @@
    ,`url` VARCHAR(1000) NOT NULL COMMENT 'url of ad'
    ,`extracted` tinyint(1) NOT NULL DEFAULT 0
    ,`extracted-edn` text COMMENT 'extracted facts in edn (null if not yet extracted)'
-   ,`classified` tinyint(1) NOT NULL DEFAULT 0
-   ,`verdict` varchar(40) DEFAULT NULL COMMENT 'classification result (initial null means not classified yet)'
+   ,`verdict` smallint(6) NOT NULL DEFAULT '-1'
    ,`history-edn` text COMMENT 'history of verdicts in edn format (includes value, reason, and date of verdict. initial null for absent verdict case)'
+   ,`published` tinyint(1) NOT NULL DEFAULT 0
    ,PRIMARY KEY (`id`)
    ,KEY (`extracted`)
+   ,KEY (`verdict`)
    ,KEY (`classified`)
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = 'ads from potential owners'"
 
@@ -192,9 +193,27 @@
    ,(0, 'Кировская',  '53.211227', '50.269460')
    ,(0, 'Юнгородок',  '53.212753', '50.283315')"
 
+   "CREATE TABLE IF NOT EXISTS `verdicts` (
+   `id` INT NOT NULL
+   ,`mnemo` VARCHAR(40) NULL
+   ,`name` VARCHAR(100) NOT NULL
+   ,PRIMARY KEY (`id`)
+   ,KEY (`mnemo`)
+   )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = ''"
+
+   "insert into `verdicts`
+   (`id`, name)
+   values
+   (0,  'Собственник')
+   ,(5, 'Подозреваемый')
+   ,(6, 'Нет номера')
+   ,(9, 'Абсурдный номер')
+   ,(10, 'Агент')
+   "
+
    "CREATE TABLE IF NOT EXISTS `pub` (
    `id` bigint(20) NOT NULL
-   ,`seoid` varchar(200) NOT NULL
+   ,`seoid` varchar(200) COLLATE utf8_bin NOT NULL
    ,`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'creation date of record'
    ,`src-date` datetime DEFAULT NULL
    ,`city` smallint(6) DEFAULT NULL

@@ -46,10 +46,13 @@
      {:id :person-type
       :selector [:div.person-name :span.info-text]
       :processors [{:func :as-text}
-                   {:func :key-by-occur
-                    :args {:pattern "агент"
-                           :key-true :agent
-                           :key-false :owner}}]
+                   {:func :set-value
+                    :args {:value :owner}}
+;;                    {:func :key-by-occur
+;;                     :args {:pattern "агент"
+;;                            :key-true :agent
+;;                            :key-false :owner}}
+                   ]
       }
      {:id :appartment-type
       :selector [:header :> [:span.semantic-text {:func :nth-of-type :args {:n 2}}]]
@@ -303,7 +306,7 @@
      :opts {:target :avito-list
             :data
             {:url "http://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
-             :url-param #{1}}
+             :url-param #{1 2}}
             :merge-data {:city :smr :appartment-type 8}
             :processing
             {:steps [{:storage-entity :agents
@@ -326,7 +329,7 @@
      :opts {:target :avito-list
             :data
             {:url "http://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
-             :url-param #{1}}
+             :url-param #{1 2}}
             :merge-data {:city :smr}
             :processing
             {:steps [{:storage-entity :agents

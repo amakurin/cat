@@ -41,8 +41,13 @@
                       :sys-ns caterpillar.mariposa
                       :config-file "conf/extract.clj"}
 
-                     {:id :hormiga
-                      :sys-name "Hormiga"
+                     {:id :formiga
+                      :sys-name "Formiga"
+                      :sys-ns caterpillar.formiga
+                      :config-file "conf/classify.clj"}
+
+                     {:id :publisher
+                      :sys-name "Publisher"
                       :sys-ns caterpillar.publisher
                       :config-file "conf/publish.clj"}
 

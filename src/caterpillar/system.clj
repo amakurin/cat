@@ -7,6 +7,7 @@
    [clj-time.format :as tf]
    [clj-time.local :as tl]
    [cronj.core :as sched]
+   [cronj.data.scheduler :as ts]
    [environ.core :refer [env]]
    [taoensso.timbre :as ti]
    )
@@ -19,100 +20,72 @@
 ;; we also use namespace of subsystem to find fns with meta
 ;; - task-handler Required if task descriptors are specified
 ;; - system-initializer Optional
-
-;;         :systems {:caterpillar
-;;                   {:config "conf/crawl.clj"
-;;                    :namespace caterpillar.core}
-;;                   :mariposa
-;;                   {:config "conf/extract.clj"
-;;                    :namespace caterpillar.mariposa}
-;;                   }
-
-;; (defn
-;;   ^{:task-handler? true}
-;;   extract-handler [t {:keys [task-id storage-entity] :as opts}]
-;;   (locking (get-lock task-id)
-;;     (let [conf (get-config)
-;;           found (select storage-entity (fields :id :raw-edn) (where {:extracted 0}))]
-;;       (doseq [{:keys [id raw-edn] :as item} found]
-;;         (err/with-try {:link-id id}
-;;                       (let [edn (->> raw-edn
-;;                                      read-string
-;;                                      (process-item conf)
-;;                                      correct-person-name)]
-;;                         (update storage-entity
-;;                                 (set-fields {:extracted 1
-;;                                              :extracted-edn (pr-str edn)})
-;;                                 (where {:id id})))))
-;;       (ti/info "Mariposa extract-handler procceed count: " (count found)))))
-
-;; ;; (time
-;; ;;  (extract-handler nil {:task-id :sdf :storage-entity :ads-bu})
-;; ;; )
-
-;; ;; (select :ads-bu (fields [:id :raw-edn]) (where {:extracted 0}))
-
-;; ;; (->> (select :ads-bu (fields :id))
-;; ;;      (take 100)
-;; ;;      (map #(update :ads-bu (set-fields {:extracted 0})(where {:id (:id %)}))))
-
 (defn get-fn [ns k]
-  (->> (tools/get-funcs ns k) first val :fn-self))
+  (when-let [f (first (tools/get-funcs ns k))]
+    (->> f val :fn-self)))
 
-(defn create-task [task-id conf task-handler]
+(defn schedule-task [cj task]
+    (ts/schedule-task (:scheduler cj) (ts/task-entry task)))
+
+(defn create-task [task-id conf sys task-handler]
   (let [{:keys [sched opts]:as task-conf} (get-in conf [:tasks task-id])]
     {:id task-id
      :handler task-handler
      :schedule sched
-     :opts (assoc opts :task-id task-id)}))
+     :opts (merge opts {:task-id task-id
+                        :sys sys})}))
 
-(defn init-internal [sys {:keys [sys-name
+(declare get-cronj)
+(defn init-internal [state sys {:keys [sys-name
                                  sys-ns
                                  config-file] :as metasys}]
-  (if (:started @sys)
-    (ti/info (str sys-name " already started. Use restart or stop."))
-    (let [sys-merge (get-fn sys-ns :system-merge)
-          task-handler (get-fn sys-ns :task-handler)
-          init-config (get-fn sys-ns :init-config)]
-      (ti/info (str sys-name " initialization..."))
-      (store/initialize (env :database))
-      (let [conf-state (conf/file-config config-file)
-            conf (if init-config (conf/cswap! conf-state init-config) (conf/cget conf-state))
-            tasks (map (fn [[k v]] (create-task k conf task-handler))(:tasks conf))]
-        (reset! sys (merge
-                     {:conf conf-state
-                      :cronj (sched/cronj :entries tasks)}
-                     (when sys-merge (sys-merge))))
-        ))))
+    (if (:started @state)
+      (ti/info (str sys-name " already started. Use restart or stop."))
+      (let [sys-merge (get-fn sys-ns :system-merge)
+            task-handler (get-fn sys-ns :task-handler)
+            init-config (get-fn sys-ns :init-config)]
+        (ti/info (str sys-name " initialization..."))
+        (store/initialize (env :database))
+        (let [conf-state (conf/file-config config-file)
+              conf (if init-config (conf/cswap! conf-state init-config) (conf/cget conf-state))
+              cronj (get-cronj sys)]
+          (reset! state
+                  (merge
+                   {:conf conf-state}
+                   (when sys-merge (sys-merge))))
+          (doall (map (fn [[k v]] (schedule-task cronj (create-task k conf sys task-handler)))(:tasks conf)))
+          @state))))
 
 (defn start-internal [sys {:keys [sys-name
-                        sys-ns
-                        config-file] :as metasys}]
-  (if (:started @sys)
-    (ti/info (str sys-name " already started."))
-    (do
-      (ti/info "Publisher starting...")
-      (if-let [cronj (:cronj @sys)]
-        (sched/start! cronj)
-        (do (init-internal sys metasys)(start-internal sys metasys)))
-      (swap! sys assoc :started true)
-      (ti/info (str sys-name " started.")))))
+                                  sys-ns
+                                  config-file] :as metasys}]
+  (let [state (:state sys)]
+    (if (:started @state)
+      (ti/info (str sys-name " already started."))
+      (do
+        (ti/info (str sys-name " starting..."))
+        (if-let [cronj (:cronj sys)]
+          (sched/start! cronj)
+          (do (init-internal sys metasys)(start-internal sys metasys)))
+        (swap! state assoc :started true)
+        (ti/info (str sys-name " started."))))))
 
 (defn stop-internal [sys {:keys [sys-name
                                  sys-ns
                                  config-file] :as metasys}]
-  (if (:started @sys)
-    (do
-      (when-let [cronj (:cronj @sys)] (sched/stop! cronj))
-      (ti/info (str sys-name " stopped.")))
-    (ti/info (str sys-name " already stopped.")))
-  (swap! sys dissoc :started))
+  (let [state (:state sys)]
+    (if (:started @state)
+      (do
+        (when-let [cronj (:cronj sys)] (sched/stop! cronj))
+        (ti/info (str sys-name " stopped.")))
+      (ti/info (str sys-name " already stopped.")))
+    (swap! state dissoc :started)))
 
 (defn restart-internal [sys {:keys [sys-name
                                     sys-ns
                                     config-file] :as metasys}]
   (stop-internal sys metasys)
-  (conf/creset! (:conf @sys))
+  (conf/creset! (:conf (->> sys :state deref)))
   (start-internal sys metasys))
 
 ;; ;(init)
@@ -126,23 +99,29 @@
   (stop [_])
   (restart [_])
   (get-config [_])
-  (get-config-data [_]))
+  (get-config-data [_])
+  (get-task-ids [_])
+  (get-cronj [_])
+  (get-state [_ korks]))
 
 (defn subsystem [sys-id]
   (if-let [{:keys [sys-name
                    sys-ns
                    config-file] :as metasys} (->> (env :subsystems) (filter (fn [{:keys [id]}] (= id sys-id))) first)]
-    (let [state (atom {:conf nil
-                       :sys nil
-                       :started nil})]
+    (let [{:keys [cronj state] :as sys}
+          {:cronj (sched/cronj :entries [])
+           :state (atom {})}]
       (reify
         ISubsystem
-        (init [_] (init-internal state metasys))
-        (start [_] (start-internal state metasys))
-        (stop [_] (stop-internal state metasys))
-        (restart [_] (restart-internal state metasys))
+        (init [this] (init-internal state this metasys))
+        (start [_] (start-internal sys metasys))
+        (stop [_] (stop-internal sys metasys))
+        (restart [_] (restart-internal sys metasys))
         (get-config [_] (:conf @state))
-        (get-config-data [_] (conf/cget (:conf @state))))
+        (get-config-data [_] (conf/cget (:conf @state)))
+        (get-task-ids [_] (sched/get-ids cronj))
+        (get-cronj [_] cronj)
+        (get-state [_ korks] (if (coll? korks) (get-in @state korks) (get @state korks))))
       )
     (println "Can't find config for subsystem id: "sys-id)
     )

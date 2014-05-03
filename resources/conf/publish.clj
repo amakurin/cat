@@ -1,21 +1,65 @@
-{:max-appearances
- {:cnt 1 :per-days 6}
- :rate-weights
- {:by-fact [0 0.9]
-  :to-agent [0 0.5]
-  :percent [0 0.5]
-  :comission [-0.4 0.4]
-  :advert-marker [0 0.6]
-  :absurd-phone [0 0.8]
-  :owner [0.2 -0.4]
-  :middleman [-0.2 0]
-  :distrub [-0.1 0]
-  }
+{:img-crops
+ {#"avito" 40 #"irr" 47 }
+ :seo-rent-strings ["Снять" "Сдам"]
+ :persistent-fields
+ [:id
+  :seoid
+  :created
+  :src-date
+  :city
+  :appartment-type
+  :floor
+  :floors
+  :price
+  :person-name
+  :phone
+  :address
+  :district
+  :metro
+  :distance
+  :lat
+  :lng
+  :total-area
+  :living-area
+  :kitchen-area
+  :toilet
+  :building-type
+  :description
+  :imgs
+
+  :deposit
+  :counters
+  :plus-utilities
+  :plus-electricity
+  :plus-water
+  :plus-gas
+
+  :balcony
+  :loggia
+  :bow-window
+
+  :furniture
+  :internet
+  :tv
+  :frige
+  :washer
+  :conditioner
+
+  :parking
+
+  :intercom
+  :security
+  :concierge
+
+  :only-russo
+  :kids
+  :pets
+  :addiction]
+
  :tasks
- {:common-extraction
-  {:sched "30 /1 * * * * *"
-   :opts {:city :smr
-          :storage-entity-src :ads
+ {:common-publish
+  {:sched "50 /1 * * * * *"
+   :opts {:storage-entity-src :ads
           :storage-entity-tgt :pub}
    }
   }

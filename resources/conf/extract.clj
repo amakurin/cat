@@ -39,8 +39,7 @@
    #"(?iux)
    (?<= ([89][\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{5,20}))
    [oOоОзЗбБЧч_[^\p{IsCyrillic}\d\-\w\s\(\)\:\.]]
-   (?=([\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{5,20}))
-   \b"
+   (?=([\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{5,20}))"
    }
   {:term :advert-marker
    :pattern
@@ -301,7 +300,6 @@
 
  :output-rules
  {[:operator :without :fact] [:not]
-  [:operator :plus] []
   [:operator :plus :fact :utilities] [:switch-to :plus-utilities :as-is]
   [:operator :plus :fact :electricity] [:switch-to :plus-electricity :as-is]
   [:operator :plus :fact :gas] [:switch-to :plus-gas :as-is]
@@ -310,8 +308,16 @@
   [:fact :electricity][nil]
   [:fact :gas][nil]
   [:fact :water][nil]
+
   [:operator :without] []
+  [:operator :without :value] [:rule-for-last]
   [:operator :full] []
+  [:operator :full :value] [:rule-for-last]
+  [:operator :any] []
+  [:operator :any :value] [:rule-for-last]
+  [:operator :plus] []
+  [:operator :plus :value] [:rule-for-last]
+
   [:operator :full :fact :furniture] []
   [:operator :full :fact :electronics] [:split-to [:tv :frige :washer]]
   [:operator :any :fact :variants] [:switch-to :only-russo :as-not]

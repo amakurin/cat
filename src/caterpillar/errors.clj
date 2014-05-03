@@ -18,6 +18,7 @@
                             (dissoc message subsystem e)
                             (assoc :stacktrace (timbre/stacktrace e))
                             pr-str)} :errors)
+    nil
     (catch Exception e (timbre/error e))))
 
 (defmacro with-try [context & body]
