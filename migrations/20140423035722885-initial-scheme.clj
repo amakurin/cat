@@ -47,7 +47,7 @@
    ,PRIMARY KEY (`id`)
    ,KEY (`extracted`)
    ,KEY (`verdict`)
-   ,KEY (`classified`)
+   ,KEY (`published`)
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = 'ads from potential owners'"
 
    "CREATE TABLE IF NOT EXISTS `app-type-groups` (
