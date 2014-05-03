@@ -189,4 +189,17 @@
             ))))))
 
 
+;; todo replace locks with something more clojurish,
+;; sync agents maybe
+(defprotocol ILocks
+  (get-lock [_ k]))
+
+(defn lock-provider []
+  (let [locks (atom {})]
+    (reify
+      ILocks
+      (get-lock [_ k] (or (k @locks) (k (swap! locks (fn [l] (if (k l) l (assoc l k (Object.))))))))
+      )))
+
+
 

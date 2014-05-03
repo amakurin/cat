@@ -26,8 +26,6 @@
   :jvm-opts [~(str "-Djava.library.path=opencv/x64/")]
   :env {:ocr-samples-path "resources/ocr/samples/"
         :ocr-file "resources/ocr/ocr.edn"
-        :crawl-config "conf/crawl.clj"
-        :mariposa-config "conf/extract.clj"
         :mariposa-dict-names "dict-names.clj"
         :crawl-mages "resources/img/"
         :crawl-mages-min-size 100
@@ -53,4 +51,4 @@
 
                      ]
         }
-  :main caterpillar.core)
+  :main caterpillar.system)

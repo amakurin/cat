@@ -15,6 +15,7 @@
   :owner [0.2 -0.4]
   :middleman [-0.2 0]
   :distrub [-0.1 0]
+  :person-type [0 0.2]
   }
  :tasks
  {:common-classify

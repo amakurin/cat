@@ -46,12 +46,12 @@
      {:id :person-type
       :selector [:div.person-name :span.info-text]
       :processors [{:func :as-text}
-                   {:func :set-value
-                    :args {:value :owner}}
-;;                    {:func :key-by-occur
-;;                     :args {:pattern "агент"
-;;                            :key-true :agent
-;;                            :key-false :owner}}
+;;                    {:func :set-value
+;;                     :args {:value :owner}}
+                   {:func :key-by-occur
+                    :args {:pattern "агент"
+                           :key-true :agent
+                           :key-false :owner}}
                    ]
       }
      {:id :appartment-type
@@ -309,15 +309,16 @@
              :url-param #{1 2}}
             :merge-data {:city :smr :appartment-type 8}
             :processing
-            {:steps [{:storage-entity :agents
-                      :store-option :so-insert-or-update
-                      :insert-or-update-key [:phone]
-                      :split-by [:phone]
-                      :filter-by {:person-type :agent}
-                      :persistent-fields [:target :phone :url :city]
-                      }
+            {:steps [
+;;                      {:storage-entity :agents
+;;                       :store-option :so-insert-or-update
+;;                       :insert-or-update-key [:phone]
+;;                       :split-by [:phone]
+;;                       :filter-by {:person-type :agent}
+;;                       :persistent-fields [:target :phone :url :city]
+;;                       }
                      {:storage-entity :ads
-                      :filter-by {:person-type :owner}
+;;                       :filter-by {:person-type :owner}
                       :as-edn-to :raw-edn
                       :persistent-fields [:src-id :target :city :raw-edn :url ]
                       }]
@@ -332,15 +333,16 @@
              :url-param #{1 2}}
             :merge-data {:city :smr}
             :processing
-            {:steps [{:storage-entity :agents
-                      :store-option :so-insert-or-update
-                      :insert-or-update-key [:phone]
-                      :split-by [:phone]
-                      :filter-by {:person-type :agent}
-                      :persistent-fields [:target :phone :url :city]
-                      }
+            {:steps [
+;;                      {:storage-entity :agents
+;;                       :store-option :so-insert-or-update
+;;                       :insert-or-update-key [:phone]
+;;                       :split-by [:phone]
+;;                       :filter-by {:person-type :agent}
+;;                       :persistent-fields [:target :phone :url :city]
+;;                       }
                      {:storage-entity :ads
-                      :filter-by {:person-type :owner}
+;;                       :filter-by {:person-type :owner}
                       :as-edn-to :raw-edn
                       :persistent-fields [:src-id :target :city :raw-edn :url ]
                       }]

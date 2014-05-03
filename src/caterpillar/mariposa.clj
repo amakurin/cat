@@ -4,6 +4,7 @@
    [caterpillar.formatters :as form]
    [caterpillar.config :as conf]
    [caterpillar.storage :as store]
+   [caterpillar.system :as sys]
    [caterpillar.tools :as tools]
    [caterpillar.errors :as err]
    [environ.core :refer [env]]
@@ -350,117 +351,54 @@
          (clean-result (:clean-rules model))
          )))
 
-;; SYS need to deep refactor with core ns same func
+(defn correct-person-name [dict item]
+  (assoc item :person-name (dict (:person-name item))))
 
-(def sys (atom {}))
-
-(defn get-config[]
-  (conf/cget (:conf @sys)))
-
-(defn init-config [conf]
-  (assoc conf :terms
-    (->> (:terms conf)
-         (map #(assoc % :formatters (form/read-formatter (:formatters %))))
-         vec)))
-
-(defn get-lock [task-id]
-  (or (get-in @sys [:locks task-id])
-      (get-in (swap! sys
-                     (fn [x] (if (get-in x [:locks task-id])
-                               x
-                               (assoc-in x [:locks task-id] (Object.)))))
-              [:locks task-id])))
-
-(defn correct-person-name [item]
-  (assoc item :person-name ((:dict-names @sys) (:person-name item))))
-
-;; (->>
-;;  (select :ads (fields :raw-edn)(where {:id 1444}))
-;;  first :raw-edn
-;;  read-string
-;;  (process-item (get-config))
-;;  )
-
-;; (extract-from-text (get-config)
-;;                    "Сдаю 1-комн.  кв.,  без посредников,  30 кв.  м,  9/9-эт.  дома,  по ул.  Владимирской,  на длительный срок с мебелью,  в хорошем состоянии,  за 10 тыс.  руб.  + коммунальные услуги.  Т.  +79277230189"
-;;                    )
+(defn bool-person-type [item]
+  (assoc item :person-type (= :agent (:person-type item))))
 
 (defn
   ^{:task-handler true}
-  extract-handler [t {:keys [task-id storage-entity] :as opts}]
-  (locking (get-lock task-id)
-    (let [conf (get-config)
+  task-handler [t {:keys [task-id storage-entity sys] :as opts}]
+  (locking (tools/get-lock sys task-id)
+    (let [dict-names (sys/get-state sys :dict-names)
+          conf (sys/get-config-data sys)
           found (select storage-entity (fields :id :raw-edn) (where {:extracted 0}))]
       (doseq [{:keys [id raw-edn] :as item} found]
         (err/with-try {:link-id id}
                       (let [edn (->> raw-edn
                                      read-string
                                      (process-item conf)
-                                     correct-person-name)]
+                                     (correct-person-name dict-names)
+                                     bool-person-type)]
                         (update storage-entity
                                 (set-fields {:extracted 1
                                              :extracted-edn (pr-str edn)})
                                 (where {:id id})))))
       (timbre/info "Mariposa extract-handler procceed count: " (count found)))))
 
+(defn
+  ^{:system-merge true}
+  load-dict-names []
+  {:dict-names (conf/cget(conf/file-config (env :mariposa-dict-names)))})
+
+(defn
+  ^{:init-config true}
+  init-config [conf]
+  (assoc conf :terms
+    (->> (:terms conf)
+         (map #(assoc % :formatters (form/read-formatter (:formatters %))))
+         vec)))
+
+(def system (sys/subsystem :mariposa))
+
+;; (sys/init system)
+;; (sys/get-config-data system)
+
+;; (sys/start system)
+;; (sys/stop system)
+
 ;; (time
-;;  (extract-handler nil {:task-id :sdf :storage-entity :ads-bu})
+;;  (task-handler nil {:task-id :sdf :storage-entity :ads-bu :sys system})
 ;; )
-
-;; (select :ads-bu (fields [:id :raw-edn]) (where {:extracted 0}))
-
-;; (->> (select :ads-bu (fields :id))
-;;      (take 100)
-;;      (map #(update :ads-bu (set-fields {:extracted 0})(where {:id (:id %)}))))
-
-(defn create-task [task-id conf]
-  (let [{:keys [sched opts]:as task-conf} (get-in conf [:tasks task-id])]
-    {:id task-id
-     :handler extract-handler
-     :schedule sched
-     :opts (assoc opts :task-id task-id)}))
-
-(defn init []
-  (if (:started @sys)
-    (timbre/info "Mariposa already started. Use restart or stop.")
-    (do
-      (timbre/info "Mariposa initialization...")
-      (store/initialize (env :database))
-      (let [conf-state (conf/file-config (env :mariposa-config))
-            conf (conf/cswap! conf-state init-config)
-            tasks (map (fn [[k v]] (create-task k conf))(:tasks conf))]
-        (reset! sys {:conf conf-state
-                     :cronj (sched/cronj :entries tasks)
-                     :dict-names (conf/cget(conf/file-config (env :mariposa-dict-names)))}))
-      )))
-
-(defn start []
-  (if (:started @sys)
-    (timbre/info "Mariposa already started.")
-    (do
-      (timbre/info "Mariposa starting...")
-      (if-let [cronj (:cronj @sys)]
-        (sched/start! cronj)
-        (do (init)(start)))
-      (swap! sys assoc :started true)
-      (timbre/info "Mariposa started."))))
-
-(defn stop []
-  (if (:started @sys)
-    (do
-      (when-let [cronj (:cronj @sys)] (sched/stop! cronj))
-      (timbre/info "Mariposa stopped."))
-    (timbre/info "Mariposa already stopped."))
-  (swap! sys dissoc :started))
-
-(defn restart []
-  (stop)
-  (conf/creset!(:conf @sys))
-  (start))
-
-;(init)
-;(start)
-;(stop)
-;(restart)
-
 

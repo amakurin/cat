@@ -2,6 +2,7 @@
   (:require
    [caterpillar.processors :as proc]
    [caterpillar.config :as conf]
+   [caterpillar.system :as sys]
    [caterpillar.storage :as store]
    [caterpillar.tools :as tools]
    [caterpillar.errors :as err]
@@ -11,11 +12,6 @@
    [cronj.data.scheduler :as ts]
    [taoensso.timbre :as timbre]
    ))
-
-(def sys (atom {}))
-
-(defn get-config[]
-  (conf/cget (:conf @sys)))
 
 (defn random-sleep [[x y]]
   (let [minute 1000
@@ -57,69 +53,35 @@
                                  storage-entity
                                  persistent-fields))))))
 
-(defn process-link [{:keys [target] :as link} {:keys [merge-data processing] :as opts}]
-  (let [link (if target (err/with-try {:link link :opts opts}
-                          (proc/process-target target link (get-config))) link)
+(defn process-link [{:keys [target] :as link} {:keys [merge-data processing sys] :as opts}]
+  (let [conf (sys/get-config-data sys)
+        link (if target (err/with-try {:link link :opts opts}
+                          (proc/process-target target link conf)) link)
         link (merge link merge-data)
         {:keys [steps pause]} processing]
     (doseq [step steps] (do-step link step))
     (timbre/info "Success with link "link)
     (when pause (random-sleep pause))))
 
-(defn crawl-handler [t {:keys [task-id target data processing] :as opts}]
-  (let [links (err/with-try {:link data :opts opts}
-                (proc/process-target target data (get-config)))]
+(defn
+  ^{:task-handler true}
+  crawl-handler [t {:keys [task-id target data sys] :as opts}]
+  (let [conf (sys/get-config-data sys)
+        links (err/with-try {:link data :opts opts}
+                (proc/process-target target data conf))]
     (timbre/info task-id " processed target "target ", found links count: " (count links))
     (doseq [link links]
       (when-not (seen? link) (process-link link opts)))))
 
-(defn create-task [task-id]
-  (let [{:keys [sched opts]:as task-conf} (get-in (get-config) [:tasks task-id])]
-    {:id task-id
-     :handler crawl-handler
-     :schedule sched
-     :opts (assoc opts :task-id task-id)}))
+(def system (sys/subsystem :caterpillar))
 
-(defn init []
-  (if (:started @sys)
-    (timbre/info "Crawl already started. Use restart or stop.")
-    (do
-      (timbre/info "Crawl initialization...")
-      (store/initialize (env :database))
-      (reset! sys {:conf (conf/file-config (env :crawl-config))})
-      (let [conf (get-config)
-            tasks (map (fn [[k v]] (create-task k))(:tasks conf))]
-        (swap! sys assoc :cronj (sched/cronj :entries tasks))))))
+;; (sys/init system)
+;; (sys/get-config-data system)
 
-(defn start []
-  (if (:started @sys)
-    (timbre/info "Crawl already started.")
-    (do
-      (timbre/info "Crawl starting...")
-      (if-let [cronj (:cronj @sys)]
-        (sched/start! cronj)
-        (do (init)(start)))
-      (swap! sys assoc :started true)
-      (timbre/info "Crawl started."))))
+;; (sys/start system)
+;; (sys/stop system)
 
-(defn stop []
-  (if (:started @sys)
-    (do
-      (when-let [cronj (:cronj @sys)] (sched/stop! cronj))
-      (timbre/info "Crawl stopped."))
-    (timbre/info "Crawl already stopped."))
-  (swap! sys dissoc :started))
+;; (time
+;;  (task-handler nil {:task-id :sdf :storage-entity :ads-bu :sys system})
+;; )
 
-(defn restart []
-  (stop)
-  (conf/creset!(:conf @sys))
-  (start))
-
-;(init)
-;(start)
-;(stop)
-;(restart)
-
-(defn -main [& args]
-  (println "Working!")
-  )

@@ -88,10 +88,6 @@
   (conf/creset! (:conf (->> sys :state deref)))
   (start-internal sys metasys))
 
-;; ;(init)
-;; ;(start)
-;; ;(stop)
-;; ;(restart)
 
 (defprotocol ISubsystem
   (init [_])
@@ -108,7 +104,8 @@
   (if-let [{:keys [sys-name
                    sys-ns
                    config-file] :as metasys} (->> (env :subsystems) (filter (fn [{:keys [id]}] (= id sys-id))) first)]
-    (let [{:keys [cronj state] :as sys}
+    (let [locks (tools/lock-provider)
+          {:keys [cronj state] :as sys}
           {:cronj (sched/cronj :entries [])
            :state (atom {})}]
       (reify
@@ -121,7 +118,9 @@
         (get-config-data [_] (conf/cget (:conf @state)))
         (get-task-ids [_] (sched/get-ids cronj))
         (get-cronj [_] cronj)
-        (get-state [_ korks] (if (coll? korks) (get-in @state korks) (get @state korks))))
+        (get-state [_ korks] (if (coll? korks) (get-in @state korks) (get @state korks)))
+        tools/ILocks
+        (get-lock [_ k] (tools/get-lock locks k)))
       )
     (println "Can't find config for subsystem id: "sys-id)
     )

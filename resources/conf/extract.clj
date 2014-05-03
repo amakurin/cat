@@ -258,9 +258,9 @@
 
  :input-rules
  {:as-is
-  #{:url :imgs :lat :lng :city :address :src-date}
+  #{:url :imgs :lat :lng :city :address :src-date :person-type}
   :exclude
-  #{:url :src-id :target :person-type}
+  #{:url :src-id :target}
   :include-origin
   #{:description}
   }
