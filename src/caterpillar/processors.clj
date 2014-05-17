@@ -11,6 +11,7 @@
    [clj-time.core :as tc]
    [clj-time.format :as tf]
    [clj-time.local :as tl]
+   [clojure.java.io :as io]
    [environ.core :refer [env]]
    )
   (:import
@@ -148,6 +149,37 @@
   save-image-with-crop [url bottom-crop]
   (try
     (if-let [buf (ocr/read-image-with-crop (URL. url) bottom-crop (or (env :crawl-mages-min-size) 100))]
+      (let [path (or (env :crawl-mages) "resources/img/")
+            file-name (str (s/replace (tools/uuid) #"\-" "") ".jpg")]
+        (ocr/buf-to-file
+         {:buf buf
+          :path (str path file-name)
+          :format :jpg
+          })
+        file-name)
+      nil)
+    (catch Exception e nil)))
+
+(defn
+  ^{:accessible-online? true}
+  save-image-with-dim [url w h]
+  (try
+    (if-let [buf (ocr/read-image-dim (URL. url) w h)]
+      (let [path (or (env :crawl-mages) "resources/img/")
+            file-name (str (s/replace (tools/uuid) #"\-" "") ".jpg")]
+        (ocr/buf-to-file
+         {:buf buf
+          :path (str path file-name)
+          :format :jpg
+          })
+        file-name)
+      nil)
+    (catch Exception e nil)))
+
+(defn
+  resave-image-with-dim [img-path w h]
+  (try
+    (if-let [buf (ocr/read-image-dim (io/file img-path) w h)]
       (let [path (or (env :crawl-mages) "resources/img/")
             file-name (str (s/replace (tools/uuid) #"\-" "") ".jpg")]
         (ocr/buf-to-file

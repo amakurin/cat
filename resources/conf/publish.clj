@@ -26,6 +26,7 @@
   :building-type
   :description
   :imgs
+  :thumb
 
   :deposit
   :counters

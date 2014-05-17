@@ -70,14 +70,21 @@
     (.drawImage g image 0 0 (.getWidth result) (.getHeight result) Color/WHITE nil)
     result))
 
+(defn read-image-dim [src w h]
+  (let [image (ImageIO/read src)
+        scaled (.getScaledInstance image w h BufferedImage/SCALE_AREA_AVERAGING)
+        result (BufferedImage. w h BufferedImage/TYPE_INT_RGB)
+        g (.createGraphics result)]
+    (.drawImage g scaled 0 0 (.getWidth result) (.getHeight result) Color/WHITE nil)
+    result))
+
 (defn read-image-with-crop [src bottom-crop min-size]
   (let [image (ImageIO/read src)
         width (.getWidth image nil)
         height (.getHeight image nil)]
     (if (or (< width min-size)(< height min-size))
       nil
-      (let [image (ImageIO/read src)
-            result (BufferedImage. width(- height bottom-crop) BufferedImage/TYPE_INT_RGB)
+      (let [result (BufferedImage. width(- height bottom-crop) BufferedImage/TYPE_INT_RGB)
             g (.createGraphics result)]
         (.drawImage g (.getSubimage image 0 0 (.getWidth result) (.getHeight result))
                     0 0 (.getWidth result) (.getHeight result) Color/WHITE nil)

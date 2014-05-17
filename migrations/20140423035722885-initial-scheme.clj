@@ -70,6 +70,7 @@
    `id` SMALLINT NOT NULL
    ,`mnemo` VARCHAR(40) NOT NULL
    ,`name` VARCHAR(100) NOT NULL
+   ,`fullname` varchar(200) NOT NULL
    ,`group` SMALLINT NOT NULL
    ,`rooms` SMALLINT NOT NULL
    ,PRIMARY KEY (`id`)
@@ -78,17 +79,17 @@
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = 'appartment types'"
 
    "insert into `appartment-types`
-   (id, mnemo, name, `group`, rooms)
+   (id, mnemo, name, fullname, `group`, rooms)
    values
-   (0, ':studio', 'студия', 0, 1)
-   ,(1, ':appartment1', '1-комн.кв.', 1, 1)
-   ,(2, ':appartment2', '2-комн.кв.', 1, 2)
-   ,(3, ':appartment3', '3-комн.кв.', 1, 3)
-   ,(4, ':appartment4', '4-комн.кв.', 1, 4)
-   ,(5, ':appartment5', '5-комн.кв.', 1, 5)
-   ,(6, ':appartment6', '6-комн.кв.', 1, 6)
-   ,(7, ':appartment7', '7-комн.кв.', 1, 7)
-   ,(8, ':room', 'комната', 2, 1)
+   (0, ':studio', 'студия', 'студия', 0, 1)
+   ,(1, ':appartment1', '1-комн. квартира', '1-комнатная квартира', 1, 1)
+   ,(2, ':appartment2', '2-комн. квартира', '2-комнатная квартира', 1, 2)
+   ,(3, ':appartment3', '3-комн. квартира', '3-комнатная квартира', 1, 3)
+   ,(4, ':appartment4', '4-комн. квартира', '4-комнатная квартира', 1, 4)
+   ,(5, ':appartment5', '5-комн. квартира', '5-комнатная квартира', 1, 5)
+   ,(6, ':appartment6', '6-комн. квартира', '6-комнатная квартира', 1, 6)
+   ,(7, ':appartment7', '7-комн. квартира', '7-комнатная квартира', 1, 7)
+   ,(8, ':room', 'комната', 'комната', 2, 1)
    "
 
    "CREATE TABLE IF NOT EXISTS `building-types` (
@@ -144,7 +145,7 @@
 
    "CREATE TABLE IF NOT EXISTS `districts` (
    `id` INT NOT NULL AUTO_INCREMENT
-   ,`city-id` SMALLINT NOT NULL
+   ,`city` SMALLINT NOT NULL
    ,`mnemo` VARCHAR(40) NULL
    ,`name` VARCHAR(100) NOT NULL
    ,`osm-relation-id` VARCHAR(40) NOT NULL
@@ -152,23 +153,21 @@
    ,KEY (`mnemo`)
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = ''"
 
-   "insert into `districts`
-   (`city-id`, name, `osm-relation-id`)
-   values
-   (0, 'Куйбышевский', '283540')
-   ,(0, 'Самарский', '283541')
-   ,(0, 'Железнодорожный', '283645')
-   ,(0, 'Ленинский', '283781')
-   ,(0, 'Октябрьский', '284542')
-   ,(0, 'Советский', '284582')
-   ,(0, 'Промышленный', '285136')
-   ,(0, 'Кировский', '285953')
-   ,(0, 'Красноглинский', '285954')
+   "INSERT INTO `districts` (`id`, `city`, `mnemo`, `name`, `osm-relation-id`) VALUES
+   (1, 0, 'kuybishevskiy', 'Куйбышевский', '283540'),
+   (2, 0, 'samarskiy', 'Самарский', '283541'),
+   (3, 0, 'zheleznodorozhniy', 'Железнодорожный', '283645'),
+   (4, 0, 'leninskiy', 'Ленинский', '283781'),
+   (5, 0, 'oktyabrskiy', 'Октябрьский', '284542'),
+   (6, 0, 'sovetskiy', 'Советский', '284582'),
+   (7, 0, 'promishlenniy', 'Промышленный', '285136'),
+   (8, 0, 'kirovskiy', 'Кировский', '285953'),
+   (9, 0, 'krasnoglinskiy', 'Красноглинский', '285954');
    "
 
    "CREATE TABLE IF NOT EXISTS `metros` (
    `id` INT NOT NULL AUTO_INCREMENT
-   ,`city-id` SMALLINT NOT NULL
+   ,`city` SMALLINT NOT NULL
    ,`mnemo` VARCHAR(40) NULL
    ,`name` VARCHAR(100) NOT NULL
    ,`lat` varchar(60) NOT NULL
@@ -180,7 +179,7 @@
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = ''"
 
    "insert into `metros`
-   (`city-id`, name, lat, lng)
+   (`city`, name, lat, lng)
    values
    (0,  'Алабинская', '53.210082', '50.135951')
    ,(0, 'Российская', '53.212015', '50.148993')
@@ -236,6 +235,7 @@
    ,`building-type` smallint(6) DEFAULT NULL
    ,`description` varchar(2000) DEFAULT NULL
    ,`imgs` varchar(2000) DEFAULT NULL
+   ,`thumb` varchar(400) DEFAULT NULL
 
    ,`deposit` tinyint(1) DEFAULT NULL
    ,`counters` tinyint(1) DEFAULT NULL

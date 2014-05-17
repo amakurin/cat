@@ -29,6 +29,7 @@
         :mariposa-dict-names "dict-names.clj"
         :crawl-mages "resources/img/"
         :crawl-mages-min-size 100
+        :thumb-size {:width 100 :height 90}
         :subsystems [{:id :caterpillar
                       :sys-name "Caterpillar"
                       :sys-ns caterpillar.core

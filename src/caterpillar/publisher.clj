@@ -20,13 +20,15 @@
    ))
 
 
-(defn generate-seo-id [rent-variants app-type-str city-str id]
+(defn generate-seo-id [rent-variants app-type-str city-str id & [total-area]]
   (let [rent (get rent-variants (rand-int (count rent-variants)))]
     (->
      (str rent " "
           (nlp/naive-word-form (s/replace app-type-str #"\." " ") :accusativus)
           " в "
           (nlp/naive-word-form city-str :oraepositionalis)
+          " "
+          (when total-area (str "S" total-area))
           " ")
      (tools/ru-translit)
      (str (tools/to-basex (+ 1000000000 id)))
@@ -50,12 +52,12 @@
 
 (defn prepare-city [{:keys [mnemo id osm-file-name] :as c}]
   (let [res (proc/to-resource (slurp (str "resources/"osm-file-name)))
-        districts (->> (select :districts (where {:city-id id}))
+        districts (->> (select :districts (where {:city id}))
                        (map (fn [distr]
                               (assoc distr :poligon
                                 (maps/get-rel-nodes res (:osm-relation-id distr))))))]
     (merge c {:districts districts
-              :metros (->>(select :metros (where {:city-id id}))
+              :metros (->>(select :metros (where {:city id}))
                           (map (fn [{:keys [lat lng]:as m}] (merge m {:lat (Float. lat)
                                                                       :lng (Float. lng)}))))})
     ))
@@ -75,15 +77,23 @@
        (remove (fn [[k v]] (nil? k)))
        first second))
 
+(defn create-thumb [link w h]
+  (proc/save-image-with-dim link w h))
+
 (defn prepare-imgs [imgs target {:keys [img-crops] :as conf}]
-  (let [crop (or (get-crop target img-crops) 0)]
+  (let [crop (or (get-crop target img-crops) 0)
+        {:keys [width height]} (env :thumb-size)]
     (err/with-try
      {:link imgs :step :prepare-imgs}
      (->> imgs
           (#(doall (map (fn [img](proc/save-image-with-crop img crop)) %)))
           (remove nil?)
           vec
-          pr-str))))
+          ((fn [x] {:imgs (pr-str x)
+                    :thumb
+                    (when-let [link (first imgs)]
+                      (create-thumb link width height))})
+           )))))
 
 (defn get-appartment-type [id]
   (when id
@@ -96,17 +106,19 @@
   (let [{:keys [appartment-type lat lng ] :as extracted} (read-string extracted-edn)
         point (when (and lat lng) [(Float. lat)(Float. lng)])
         city (get cities city)
-        metro (get-metro point city)]
+        metro (get-metro point city)
+        {:keys [imgs thumb]} (prepare-imgs (:imgs extracted) target conf)]
     (-> extracted
         (assoc :id id)
         (assoc :seoid (generate-seo-id
                        seo-rent-strings
                        (get-appartment-type appartment-type)
-                       (:name city) id))
+                       (:name city) id (:total-area extracted)))
         (assoc :district (:id (get-district point city)))
         (assoc :metro (:id metro))
         (assoc :distance (:distance metro))
-        (assoc :imgs (prepare-imgs (:imgs extracted) target conf))
+        (assoc :imgs imgs)
+        (assoc :thumb thumb)
         (assoc :city (:id city)))))
 
  (defn
@@ -131,6 +143,22 @@
        (update storage-entity-src (set-fields {:published 0}) (where {:id id}))))
     (ti/info "Publisher " task-id " handler procceed.")
     ))
+
+(defn util-create-thumbs[]
+ (->>
+  (select :pub)
+  (map #(assoc % :imgs (read-string (:imgs %))))
+  (filter #(seq (:imgs %)))
+  (#(doall
+   (map (fn [x]
+          (let [{:keys [imgs id]} x
+               {:keys [width height]} (env :thumb-size)
+               thumb (proc/resave-image-with-dim (str "resources/img/" (first imgs)) width height)]
+            (println id thumb)
+           (update :pub (set-fields {:thumb thumb}) (where {:id id}))
+           ))%)))))
+
+;; (util-create-thumbs)
 
 (def system (sys/subsystem :publisher))
 
