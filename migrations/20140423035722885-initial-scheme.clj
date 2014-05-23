@@ -133,14 +133,15 @@
    ,`use-metro` tinyint(1) NOT NULL DEFAULT 1
    ,`osm-file-name` VARCHAR(100) NOT NULL
    ,`metro-map-file-name` VARCHAR(100) NULL
+   ,`default-phone-code` VARCHAR(10) NULL
    ,PRIMARY KEY (`id`)
    ,KEY (`mnemo`)
    )ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT = ''"
 
    "insert into `cities`
-   (id, mnemo, name,`osm-file-name` )
+   (id, mnemo, name,`osm-file-name`,`default-phone-code` )
    values
-   (0, ':smr', 'Самара','samara.xml' )
+   (0, ':smr', 'Самара','samara.xml','846' )
    "
 
    "CREATE TABLE IF NOT EXISTS `districts` (
