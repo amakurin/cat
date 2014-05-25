@@ -76,6 +76,12 @@
       :processors [{:func :get-attribute
                     :args {:attr :src}}]
       }
+     {:id :imgs
+      :selector [:li.photo-container :span.img-pseudo]
+      :collection? true
+      :processors [{:func :get-attribute
+                    :args {:attr :data-img-src}}]
+      }
      {:id :lat
       :selector [:div#item-map]
       :processors [{:func :get-attribute
