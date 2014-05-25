@@ -1,4 +1,4 @@
-(defproject caterpillar "0.1.0"
+(defproject caterpillar "0.1.0-SNAPSHOT"
   :description "Simple crawling service"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
