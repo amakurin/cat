@@ -116,7 +116,7 @@
 (defn
   ^{:accessible-online? true}
   get-attribute [{:keys [tag attrs] :as resource} attr]
-  (let [auto-prepend {:a :href :img :src}
+  (let [auto-prepend {:a :href :img :src :span :data-img-src}
         value (attr attrs)]
     (if (= (auto-prepend tag) attr)
       (prepend-base-url value (current-url))
@@ -148,7 +148,7 @@
   ^{:accessible-online? true}
   save-image-with-crop [url bottom-crop]
   (try
-    (if-let [buf (ocr/read-image-with-crop (URL. url) bottom-crop (or (env :crawl-mages-min-size) 100))]
+    (if-let [buf (ocr/read-image-with-crop (URL. url) bottom-crop (or (tools/as-is(env :crawl-mages-min-size)) 100))]
       (let [path (or (env :crawl-mages) "resources/img/")
             file-name (str (s/replace (tools/uuid) #"\-" "") ".jpg")]
         (ocr/buf-to-file

@@ -1,4 +1,4 @@
-(defproject caterpillar "0.1.0-SNAPSHOT"
+(defproject caterpillar "0.1.0"
   :description "Simple crawling service"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -27,7 +27,7 @@
   :env {:ocr-samples-path "resources/ocr/samples/"
         :ocr-file "resources/ocr/ocr.edn"
         :mariposa-dict-names "dict-names.clj"
-        :crawl-mages "resources/img/"
+        :crawl-mages "/home/user/catimgs/"
         :crawl-mages-min-size 100
         :thumb-size {:width 100 :height 90}
         :subsystems [{:id :caterpillar

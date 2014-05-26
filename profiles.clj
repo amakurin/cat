@@ -10,7 +10,7 @@
                    :user "caterpillar"
                    :password "111111"
                    :delimiters "`"}
-        :crawl-mages "resources/img/"
+        :crawl-mages "/home/user/catimgs/"
         }
 
   }

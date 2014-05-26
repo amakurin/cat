@@ -82,7 +82,7 @@
 
 (defn prepare-imgs [imgs target {:keys [img-crops] :as conf}]
   (let [crop (or (get-crop target img-crops) 0)
-        {:keys [width height]} (env :thumb-size)]
+        {:keys [width height]} (tools/as-is(env :thumb-size))]
     (err/with-try
      {:link imgs :step :prepare-imgs}
      (->> imgs
@@ -152,8 +152,8 @@
   (#(doall
    (map (fn [x]
           (let [{:keys [imgs id]} x
-               {:keys [width height]} (env :thumb-size)
-               thumb (proc/resave-image-with-dim (str "resources/img/" (first imgs)) width height)]
+               {:keys [width height]} (tools/as-is(env :thumb-size))
+               thumb (proc/resave-image-with-dim (str (env :crawl-mages) (first imgs)) width height)]
             (println id thumb)
            (update :pub (set-fields {:thumb thumb}) (where {:id id}))
            ))%)))))

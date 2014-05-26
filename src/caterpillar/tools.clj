@@ -201,5 +201,6 @@
       (get-lock [_ k] (or (k @locks) (k (swap! locks (fn [l] (if (k l) l (assoc l k (Object.))))))))
       )))
 
-
+(defn as-is [v]
+  (if (string? v) (read-string v) v))
 

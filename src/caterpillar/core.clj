@@ -1,5 +1,4 @@
 (ns caterpillar.core
-  (:gen-class)
   (:require
    [caterpillar.processors :as proc]
    [caterpillar.config :as conf]

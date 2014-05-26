@@ -1,5 +1,4 @@
 (ns caterpillar.system
-  (:gen-class)
   (:require
    [caterpillar.config :as conf]
    [caterpillar.storage :as store]
@@ -35,9 +34,6 @@
      :schedule sched
      :opts (merge opts {:task-id task-id
                         :sys sys})}))
-(defn as-map [v]
-  (if (string? v) (read-string v) v))
-
 (declare get-cronj)
 (defn init-internal [state sys {:keys [sys-name
                                  sys-ns
@@ -48,7 +44,7 @@
             task-handler (get-fn sys-ns :task-handler)
             init-config (get-fn sys-ns :init-config)]
         (ti/info (str sys-name " initialization..."))
-        (store/initialize (as-map(env :database)))
+        (store/initialize (tools/as-is(env :database)))
         (let [conf-state (conf/file-config config-file)
               conf (if init-config (conf/cswap! conf-state init-config) (conf/cget conf-state))
               cronj (get-cronj sys)]
@@ -106,7 +102,7 @@
 (defn subsystem [sys-id]
   (if-let [{:keys [sys-name
                    sys-ns
-                   config-file] :as metasys} (->> (env :subsystems) as-map (filter (fn [{:keys [id]}] (= id sys-id))) first)]
+                   config-file] :as metasys} (->> (env :subsystems) tools/as-is (filter (fn [{:keys [id]}] (= id sys-id))) first)]
     (let [locks (tools/lock-provider)
           {:keys [cronj state] :as sys}
           {:cronj (sched/cronj :entries [])
@@ -135,7 +131,7 @@
 (defn -main [& args]
   (let [ss (reset! subsystems (->>
                                (env :subsystems)
-                               as-map
+                               tools/as-is
                                (map #(subsystem (:id %)))))
         ]
     (doall (map (fn [sub]
