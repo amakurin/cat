@@ -17,7 +17,8 @@
    [clj-time.local :as tl]
    ))
 
-(defn get-rate[input rate-weights]
+(defn get-rate[input {:keys [rate-weights multi-phone-weight]
+                      :or {multi-phone-weight 0} :as conf}]
   (let [weights (->> rate-weights
                      (mapcat (fn [[k [f t]]] [[[k false] f]
                                               [[k true] t]
@@ -28,6 +29,7 @@
          (map (fn [k] [k (k input)]))
          (map #(get weights %))
          (reduce +)
+         (#(if (> (-> input :phone count) 1) (+ % multi-phone-weight) %))
          )))
 
 (defn count-distinct [coll]
@@ -70,15 +72,14 @@
                   )})))
 
 (defn classify [{:keys [city storage-entity-src sys] :as task-opts}]
-  (let [{:keys [query-days rate-weights]
-         :or {query-days 2} :as conf} (sys/get-config-data sys)]
+  (let [{:keys [query-days] :or {query-days 2} :as conf} (sys/get-config-data sys)]
   (->>
    (select storage-entity-src (fields :id :src-id :target :extracted-edn :verdict :url :city)
            (where  {:created [> (tf/unparse (tf/formatters :mysql)
                                             (tc/minus (tl/local-now)
                                                       (tc/days query-days)))]
                     :extracted 1
-                    :verdict [< 5]}))
+                    :verdict [<= 5]}))
    (mapcat (fn [{:keys [id src-id extracted-edn classified] :as x}]
              (let [extracted (read-string extracted-edn)]
                (-> x
@@ -100,7 +101,7 @@
                          (mapcat #(:phone-entries %))
                          (mapcat (fn [[ph ids]] ids))
                          distinct count)
-                    :agent-rate (get-rate (:extracted fst) rate-weights)
+                    :agent-rate (get-rate (:extracted fst) conf)
                     :agent-phones (->> fst :extracted :phone get-inagents-count)
                     }
                    ))))

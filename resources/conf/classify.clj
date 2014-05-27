@@ -1,10 +1,11 @@
-{:query-days 3
+{:query-days 5
  :rate-bounds {:owner [-999999 0.5]
                :suspect [0.5 0.7]
                :agent [0.7 999999]}
  :appearance-bounds {:owner [-999999 2]
                      :suspect [2 3]
                      :agent [3 999999]}
+ :multi-phone-weight 0.2
  :rate-weights
  {:by-fact [0 0.9]
   :to-agent [0 0.5]
@@ -15,7 +16,7 @@
   :owner [0.2 -0.4]
   :middleman [-0.2 0]
   :distrub [-0.1 0]
-  :person-type [0 0.2]
+  :person-type [0 0.3]
   }
  :tasks
  {:common-classify
