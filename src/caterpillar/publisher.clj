@@ -139,8 +139,7 @@
     (doseq [{:keys [id] :as ad} (select storage-entity-src (where {:published 1 :verdict [>= 5]}))]
       (err/with-try
        {:link id :step :unpublish}
-       (delete storage-entity-tgt (where {:id id}))
-       (update storage-entity-src (set-fields {:published 0}) (where {:id id}))))
+       (update storage-entity-tgt (set-fields {:unpub 1}) (where {:id id}))))
     (ti/info "Publisher " task-id " handler procceed.")
     ))
 

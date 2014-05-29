@@ -17,8 +17,13 @@
    [clj-time.local :as tl]
    ))
 
-(defn get-rate[input {:keys [rate-weights multi-phone-weight]
-                      :or {multi-phone-weight 0} :as conf}]
+(defn check-bounds [bounds v]
+  (->> bounds
+       (filter (fn [[k [v1 v2]]] (and (>= v v1) (< v v2))))
+       first first))
+
+(defn get-rate[input {:keys [rate-weights multi-phone-bounds]
+                      :or {multi-phone-bounds {0 [-999 999]}} :as conf}]
   (let [weights (->> rate-weights
                      (mapcat (fn [[k [f t]]] [[[k false] f]
                                               [[k true] t]
@@ -29,7 +34,7 @@
          (map (fn [k] [k (k input)]))
          (map #(get weights %))
          (reduce +)
-         (#(if (> (-> input :phone count) 1) (+ % multi-phone-weight) %))
+         (#(+ % (check-bounds multi-phone-bounds (-> input :phone count))))
          )))
 
 (defn count-distinct [coll]
@@ -44,11 +49,6 @@
              (where {:phone [in phones]}))
      first :cnt)
     -1))
-
-(defn check-bounds [bounds v]
-  (->> bounds
-       (filter (fn [[k [v1 v2]]] (and (>= v v1) (< v v2))))
-       first first))
 
 (defn merge-verdict [{:keys [rate-bounds appearance-bounds] :as conf}
                      {:keys [phone-entries agent-rate

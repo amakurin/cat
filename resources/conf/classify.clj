@@ -5,7 +5,9 @@
  :appearance-bounds {:owner [-999999 2]
                      :suspect [2 3]
                      :agent [3 999999]}
- :multi-phone-weight 0.2
+ :multi-phone-bounds {0 [-999 2]
+                      0.3 [2 3]
+                      0.5 [3 9999]}
  :rate-weights
  {:by-fact [0 0.9]
   :to-agent [0 0.5]
