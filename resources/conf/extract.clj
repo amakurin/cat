@@ -37,9 +37,9 @@
   {:term :absurd-phone
    :pattern
    #"(?iux)
-   (?<= ([89][\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{5,20}))
+   (?<= ([89][\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{4,20}))
    [oOоОзЗбБЧч_[^\p{IsCyrillic}\d\-\w\s\(\)\:\.]]
-   (?=([\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{5,20}))"
+   (?=([\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{4,20}))"
    }
   {:term :advert-marker
    :pattern
