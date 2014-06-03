@@ -24,6 +24,14 @@
 
 (def chans (atom {:input-chan nil}))
 
+
+(defn link-ok? [url status trace-redirects]
+  (let [lrd (last trace-redirects)]
+    (and (not= status 404)
+         (or (not lrd)
+             (and lrd (re-find (re-pattern (s/replace url #"([\.\?\!\-])" #(str "\\" (first %)))) lrd)))))
+  )
+
 (defn do-check [{:keys [task-id timeout-ms
                         query-hours
                         storage-entity-src
@@ -41,19 +49,25 @@
                   (order :pub.created :ASC))]
     (err/with-try
      {:link url :step :checker}
-     (let [{:keys [status trace-redirects] :as resp} (httpc/head url {:as :auto :throw-exceptions false})
-           lrd (last trace-redirects)]
-       (when-not
-         (or (= (quot status 100) 5)
-             (and (= status 200)
-                  (or (not lrd)
-                      (and lrd (re-find (re-pattern (s/replace url #"([\.\?\!\-])" #(str "\\" (first %)))) lrd)))))
+     (let [{:keys [status trace-redirects] :as resp} (httpc/head url {:as :auto :throw-exceptions false})]
+       (when-not (link-ok? url status trace-redirects)
          (update :pub
                  (set-fields {:unpub 2})
                  (where {:id lid}))
          (ti/info "Checker unpublished id:" lid " url: " url)
-         (Thread/sleep timeout-ms)))))
+         (Thread/sleep timeout-ms))
+       (when (not= status 200)
+         (ti/info "Checker DANGER STATUS:" status " id:" lid " url: " url )))))
   (ti/info "Checker " task-id " handler procceed."))
+
+;; (let [url "http://m.avito.ru/samara/kvartiry/1-k_kvartira_39_m_12_et._344868371"
+;;       {:keys [status trace-redirects] :as resp}
+;;       (httpc/head url
+;;                   {:as :auto :throw-exceptions false})]
+;;   (link-ok? url status trace-redirects)
+;;   )
+
+
 
 (defn check-loop []
   (thread
