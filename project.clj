@@ -50,6 +50,11 @@
                       :sys-ns caterpillar.publisher
                       :config-file "conf/publish.clj"}
 
+                     {:id :checker
+                      :sys-name "Checker"
+                      :sys-ns caterpillar.checker
+                      :config-file "conf/check.clj"}
+
                      ]
         }
   :main caterpillar.system)

@@ -15,7 +15,7 @@
 ;; ok in order code not to look realy trashy
 ;; i've decided to implement this temporary abstraction for subsystem management
 ;; we take configs from project settings
-;; everyone of which may or may not contain tasks section
+;; everyone of which should contain tasks section
 ;; if task descriptors are found we use them with scheduler
 ;; we also use namespace of subsystem to find fns with meta
 ;; - task-handler Required if task descriptors are specified
@@ -58,7 +58,8 @@
 (defn start-internal [sys {:keys [sys-name
                                   sys-ns
                                   config-file] :as metasys}]
-  (let [state (:state sys)]
+  (let [state (:state sys)
+        on-start (get-fn sys-ns :system-start)]
     (if (:started @state)
       (ti/info (str sys-name " already started."))
       (do
@@ -66,17 +67,20 @@
         (if-let [cronj (:cronj sys)]
           (sched/start! cronj)
           (do (init-internal sys metasys)(start-internal sys metasys)))
+        (when on-start (on-start))
         (swap! state assoc :started true)
         (ti/info (str sys-name " started."))))))
 
 (defn stop-internal [sys {:keys [sys-name
                                  sys-ns
                                  config-file] :as metasys}]
-  (let [state (:state sys)]
+  (let [state (:state sys)
+        on-stop (get-fn sys-ns :system-stop)]
     (if (:started @state)
       (do
         (when-let [cronj (:cronj sys)] (sched/stop! cronj))
-        (ti/info (str sys-name " stopped.")))
+        (ti/info (str sys-name " stopped."))
+        (when on-stop (on-stop)))
       (ti/info (str sys-name " already stopped.")))
     (swap! state dissoc :started)))
 

@@ -14,6 +14,7 @@
     (defdb db conf)))
 
 ;(initialize (env :database))
+;(defdb db (env :database))
 
 (defn prepare-data [o & [persistance-fields]]
   (let [o (if (seq persistance-fields) (select-keys o persistance-fields) o)]
