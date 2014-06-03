@@ -1,6 +1,6 @@
 {:tasks
  {:short-check
-  {:sched "1 1 /1 * * * *"
+  {:sched "1 2 /1 * * * *"
    :opts {:timeout-ms 100
           :query-hours 2
           :storage-entity-src :ads
