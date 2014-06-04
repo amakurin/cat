@@ -29,7 +29,7 @@
   (let [lrd (last trace-redirects)]
     (and (not= status 404)
          (or (not lrd)
-             (and lrd (re-find (re-pattern (s/replace url #"([\.\?\!\-])" #(str "\\" (first %)))) lrd)))))
+             (and lrd (re-find (re-pattern (s/replace (s/replace url #"http:|https:" "") #"([\.\?\!\-])" #(str "\\" (first %)))) lrd)))))
   )
 
 (defn do-check [{:keys [task-id timeout-ms
@@ -66,8 +66,6 @@
 ;;                   {:as :auto :throw-exceptions false})]
 ;;   (link-ok? url status trace-redirects)
 ;;   )
-
-
 
 (defn check-loop []
   (thread
