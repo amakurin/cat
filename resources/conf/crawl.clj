@@ -311,7 +311,7 @@
     {:sched "20 /1 * * * * *"
      :opts {:target :avito-list
             :data
-            {:url "http://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
+            {:url "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
              :url-param #{1 2}}
             :merge-data {:city :smr :appartment-type 8}
             :processing
@@ -332,10 +332,10 @@
              }
             }}
     :avito-samara-kv
-    {:sched "30 /1 * * * * *"
+    {:sched "30 /2 * * * * *"
      :opts {:target :avito-list
             :data
-            {:url "http://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
+            {:url "https://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
              :url-param #{1 2}}
             :merge-data {:city :smr}
             :processing
