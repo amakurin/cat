@@ -8,8 +8,8 @@
    }
 
   :long-check
-  {:sched "1 31 1 * * * *"
-   :opts {:timeout-ms 1500
+  {:sched "1 31 3 * * * *"
+   :opts {:timeout-ms 2500
           :query-hours 168
           :storage-entity-src :ads
           :storage-entity-tgt :pub}
