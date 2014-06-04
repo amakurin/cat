@@ -64,6 +64,7 @@
 ;;       {:keys [status trace-redirects] :as resp}
 ;;       (httpc/head url
 ;;                   {:as :auto :throw-exceptions false})]
+;;   (println status)
 ;;   (link-ok? url status trace-redirects)
 ;;   )
 
