@@ -132,7 +132,7 @@
   (locking (get-lock task-id)
     (let [ads (classify opts)]
       (doseq [ad ads]
-        (when (and (= 10 (:verdict ad)) (= 0 (:agent-phones ad)))
+        (when (and (= 10 (:verdict ad)) (= 0 (:agent-phones ad)) (not (get-in ad [:extracted :absurd-phone])))
           (push-agent ad)
           )
         (err/with-try
