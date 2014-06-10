@@ -10,7 +10,7 @@
   :long-check
   {:sched "1 31 3 * * * *"
    :opts {:timeout-ms 2500
-          :query-hours 168
+          :query-hours 336
           :storage-entity-src :ads
           :storage-entity-tgt :pub}
    }
