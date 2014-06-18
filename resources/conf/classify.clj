@@ -1,4 +1,4 @@
-{:query-days 5
+{:query-days 14
  :rate-bounds {:owner [-999999 0.5]
                :suspect [0.5 0.7]
                :agent [0.7 999999]}
