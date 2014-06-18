@@ -290,7 +290,7 @@
    :tasks
    {
     :dmir-samara-agents
-    {:sched "1 /1 * * * * *"
+    {:sched "20 /1 * * * * *"
      :opts {:target :dmir-list
             :data
             {:url "http://realty.dmir.ru/samara/rent/arenda-kvartir-v-samare/?objsrc=4205,4203&page=%s"
@@ -308,7 +308,7 @@
             }}
 
     :avito-samara-room
-    {:sched "20 /1 * * * * *"
+    {:sched "1 /2 * * * * *"
      :opts {:target :avito-list
             :data
             {:url "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
@@ -356,7 +356,7 @@
              }
             }}
     :irr-samara-room
-    {:sched "40 /1 * * * * *"
+    {:sched "10 /1 * * * * *"
      :opts {:target :irr-list
             :data
             {:url "http://samara.irr.ru/real-estate/rooms-rent/search/rent_period=3674653711/list=list/page%s/"
@@ -379,7 +379,7 @@
              }
             }}
     :irr-samara-kv
-    {:sched "50 /1 * * * * *"
+    {:sched "40 /1 * * * * *"
      :opts {:target :irr-list
             :data
             {:url "http://samara.irr.ru/real-estate/rent/search/rent_period=3674653711/list=list/page%s/"
