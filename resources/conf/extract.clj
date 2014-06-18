@@ -35,13 +35,10 @@
    \b(?![\d])"
    }
   {:term :absurd-phone
+   :formatters {:func :absurd-phone}
    :pattern
    #"(?iux)
-   (?:
-   (?<= ([89][\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{4,20}))
-   [oOоОзЗбБЧч_[^\p{IsCyrillic}\d\-\w\s\(\)\:\.]]
-   (?=([\doOоОзЗбБЧч_[^\p{IsCyrillic}\w]]{4,20})))
-   |[89][oOоОзЗбБЧч_[^\p{IsCyrillic}\w]]?(?:\d{1,4}[oOоОзЗбБЧч_[^\p{IsCyrillic}\w]]+){4,10}
+   (?:\+7|8)?\s*(?:\(\d{3}\)|9)\s*(?:(o|O|о|О|з|З|б|Б|Ч|ч|_|[^\p{IsCyrillic}\w\s\-])|\d|\s|\-){7,30}
    "
    }
   {:term :advert-marker

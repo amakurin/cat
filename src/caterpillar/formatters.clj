@@ -40,6 +40,12 @@
 
 (defn
   ^{:accessible-online? true}
+  absurd-phone [x]
+  (not (nil? (second x))))
+
+
+(defn
+  ^{:accessible-online? true}
   floor [x]
   (->> x
        rest
