@@ -307,54 +307,54 @@
              }
             }}
 
-    :avito-samara-room
-    {:sched "1 /2 * * * * *"
-     :opts {:target :avito-list
-            :data
-            {:url "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
-             :url-param #{1 2}}
-            :merge-data {:city :smr :appartment-type 8}
-            :processing
-            {:steps [
-;;                      {:storage-entity :agents
-;;                       :store-option :so-insert-or-update
-;;                       :insert-or-update-key [:phone]
-;;                       :split-by [:phone]
-;;                       :filter-by {:person-type :agent}
-;;                       :persistent-fields [:target :phone :url :city]
-;;                       }
-                     {:storage-entity :ads
-;;                       :filter-by {:person-type :owner}
-                      :as-edn-to :raw-edn
-                      :persistent-fields [:src-id :target :city :raw-edn :url ]
-                      }]
-             ;:pause [1 1]
-             }
-            }}
-    :avito-samara-kv
-    {:sched "30 /2 * * * * *"
-     :opts {:target :avito-list
-            :data
-            {:url "https://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
-             :url-param #{1 2}}
-            :merge-data {:city :smr}
-            :processing
-            {:steps [
-;;                      {:storage-entity :agents
-;;                       :store-option :so-insert-or-update
-;;                       :insert-or-update-key [:phone]
-;;                       :split-by [:phone]
-;;                       :filter-by {:person-type :agent}
-;;                       :persistent-fields [:target :phone :url :city]
-;;                       }
-                     {:storage-entity :ads
-;;                       :filter-by {:person-type :owner}
-                      :as-edn-to :raw-edn
-                      :persistent-fields [:src-id :target :city :raw-edn :url ]
-                      }]
-             ;:pause [1 1]
-             }
-            }}
+;;     :avito-samara-room
+;;     {:sched "1 /2 * * * * *"
+;;      :opts {:target :avito-list
+;;             :data
+;;             {:url "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=%s"
+;;              :url-param #{1 2}}
+;;             :merge-data {:city :smr :appartment-type 8}
+;;             :processing
+;;             {:steps [
+;; ;;                      {:storage-entity :agents
+;; ;;                       :store-option :so-insert-or-update
+;; ;;                       :insert-or-update-key [:phone]
+;; ;;                       :split-by [:phone]
+;; ;;                       :filter-by {:person-type :agent}
+;; ;;                       :persistent-fields [:target :phone :url :city]
+;; ;;                       }
+;;                      {:storage-entity :ads
+;; ;;                       :filter-by {:person-type :owner}
+;;                       :as-edn-to :raw-edn
+;;                       :persistent-fields [:src-id :target :city :raw-edn :url ]
+;;                       }]
+;;              ;:pause [1 1]
+;;              }
+;;             }}
+;;     :avito-samara-kv
+;;     {:sched "30 /2 * * * * *"
+;;      :opts {:target :avito-list
+;;             :data
+;;             {:url "https://m.avito.ru/samara/kvartiry/sdam/na_dlitelnyy_srok?page=%s"
+;;              :url-param #{1 2}}
+;;             :merge-data {:city :smr}
+;;             :processing
+;;             {:steps [
+;; ;;                      {:storage-entity :agents
+;; ;;                       :store-option :so-insert-or-update
+;; ;;                       :insert-or-update-key [:phone]
+;; ;;                       :split-by [:phone]
+;; ;;                       :filter-by {:person-type :agent}
+;; ;;                       :persistent-fields [:target :phone :url :city]
+;; ;;                       }
+;;                      {:storage-entity :ads
+;; ;;                       :filter-by {:person-type :owner}
+;;                       :as-edn-to :raw-edn
+;;                       :persistent-fields [:src-id :target :city :raw-edn :url ]
+;;                       }]
+;;              ;:pause [1 1]
+;;              }
+;;             }}
     :irr-samara-room
     {:sched "10 /1 * * * * *"
      :opts {:target :irr-list
