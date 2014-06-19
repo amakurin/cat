@@ -40,6 +40,9 @@
 (defn current-url []
   (get-in-local-context [:url]))
 
+(defn current-proxy []
+  (get-in-local-context [:prox]))
+
 (defn get-arg [arglist-entry]
    (cond (map? arglist-entry) {:arg (:as arglist-entry)}
          (vector? arglist-entry) (map (fn [x] {:arg x :opt? true}) arglist-entry)
@@ -92,11 +95,42 @@
 
 ;;;;;;;;Actually processors
 
+(defn do-http-get [url opts]
+  (let [{:keys [proxy-host proxy-port proxy-creds] :as prox} (current-proxy)
+        proxy-opts (when (and prox proxy-host) (select-keys prox [:proxy-host :proxy-port]))
+;;         proxy-headers (when proxy-creds
+;;                         {"Proxy-Authorization"
+;;                          (str "Basic "
+;;                               (String. (Base64/encodeBase64 (.getBytes proxy-creds))))})
+        {:keys [headers] :as opts} (if proxy-opts (merge opts proxy-opts {:insecure? true}) opts)
+;;         opts (if proxy-headers (merge opts {:headers (merge headers proxy-headers)}) opts)
+        ]
+    (httpc/get url opts)))
+
+;; (let [cnt (create-context {:prox {:proxy-host "78.46.210.21"
+;;   :proxy-port 3128
+;;   :proxy-creds "caterpillarrobot:123QWEas"
+;;   }})]
+;;   (current-proxy)
+;; (do-http-get
+;;  "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=1"
+;;  {:as :auto}
+;;  )
+;;   )
+
+;; (httpc/get "https://floor16.ru"
+;;            {:as :auto
+;;             :proxy-host "78.46.210.21"
+;;             :proxy-port 3128
+;;             :insecure? true
+;;             })
+
 (defn
   ^{:accessible-online? true}
   to-resource [src]
-  (let [src (if (tools/valid-url? src)
-              (:body (httpc/get src {:as :auto}))
+  (let [prox (current-proxy)
+        src (if (tools/valid-url? src)
+              (:body (do-http-get src {:as :auto}))
               src)]
     ;(html/html-resource (StringReader. src))
     (html/html-resource (ByteArrayInputStream. (.getBytes src "UTF-8")) {:parser jsoup/parser})
@@ -510,7 +544,7 @@
   direct-crawl-json [url fields-meta & [headers]]
   (let [headers (or headers {"X-Requested-With" "XMLHttpRequest"})
         headers (assoc headers "Referer" (current-url))]
-    (get-in (httpc/get url {:as :json :headers headers})
+    (get-in (do-http-get url {:as :json :headers headers})
             [:body])))
 
 (defn
@@ -533,9 +567,9 @@
        (#(extract fields-meta %))
        (merge resource)))
 
-(defn process-target [target data & [conf]]
+(defn process-target [target data & [conf prox]]
   (let [context (if conf
-                  (create-context {:conf conf :target target :initial-data data})
+                  (create-context {:conf conf :target target :initial-data data :prox prox})
                   (merge-context {:target target :initial-data data}))
         composed (compose (get-in context [:conf :targets target]))]
     (composed data)))

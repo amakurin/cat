@@ -53,10 +53,10 @@
                                  storage-entity
                                  persistent-fields))))))
 
-(defn process-link [{:keys [target] :as link} {:keys [merge-data processing sys] :as opts}]
+(defn process-link [{:keys [target] :as link} {:keys [merge-data processing sys prox] :as opts}]
   (let [conf (sys/get-config-data sys)
         link (if target (err/with-try {:link link :opts opts}
-                          (proc/process-target target link conf)) link)
+                          (proc/process-target target link conf prox)) link)
         link (merge link merge-data)
         {:keys [steps pause]} processing]
     (doseq [step steps] (do-step link step))
@@ -65,10 +65,10 @@
 
 (defn
   ^{:task-handler true}
-  crawl-handler [t {:keys [task-id target data sys] :as opts}]
+  crawl-handler [t {:keys [task-id target data sys prox] :as opts}]
   (let [conf (sys/get-config-data sys)
         links (err/with-try {:link data :opts opts}
-                (proc/process-target target data conf))]
+                (proc/process-target target data conf prox))]
     (timbre/info task-id " processed target "target ", found links count: " (count links))
     (doseq [link links]
       (when-not (seen? link) (process-link link opts)))))
