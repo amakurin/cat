@@ -22,7 +22,7 @@
        (filter (fn [[k [v1 v2]]] (and (>= v v1) (< v v2))))
        first first))
 
-(defn get-rate[input {:keys [rate-weights multi-phone-bounds]
+(defn get-rate[input {:keys [rate-weights multi-phone-bounds img-count-bounds]
                       :or {multi-phone-bounds {0 [-999 999]}} :as conf}]
   (let [weights (->> rate-weights
                      (mapcat (fn [[k [f t]]] [[[k false] f]
@@ -35,6 +35,7 @@
          (map #(get weights %))
          (reduce +)
          (#(+ % (check-bounds multi-phone-bounds (-> input :phone count))))
+         (#(+ % (check-bounds img-count-bounds (-> extracted :imgs count))))
          )))
 
 (defn count-distinct [coll]

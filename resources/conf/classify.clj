@@ -8,6 +8,10 @@
  :multi-phone-bounds {0 [-999 2]
                       0.3 [2 3]
                       0.5 [3 9999]}
+ :img-count-bounds {0.1 [-999 1]
+                    0.5 [1 2]
+                    0.2 [2 4]
+                    0 [4 999]}
  :rate-weights
  {:by-fact [0 0.9]
   :to-agent [0 0.5]
