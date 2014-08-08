@@ -35,7 +35,7 @@
          (map #(get weights %))
          (reduce +)
          (#(+ % (check-bounds multi-phone-bounds (-> input :phone count))))
-         (#(+ % (check-bounds img-count-bounds (-> extracted :imgs count))))
+         (#(+ % (check-bounds img-count-bounds (-> input :imgs count))))
          )))
 
 (defn count-distinct [coll]
