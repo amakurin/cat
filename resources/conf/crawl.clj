@@ -93,7 +93,7 @@
                     :args {:attr :data-coords-lng}}]
       }
      {:id :phone
-      :selector [:li.action-show-number :a.action-link]
+      :selector [:a.action-show-number.action-link]
       :processors [{:func :get-attribute
                     :args {:attr :href}}
                    {:func :str-format
