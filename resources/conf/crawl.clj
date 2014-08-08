@@ -232,7 +232,7 @@
     [{:func :direct-crawl-list
       :args {:url [:data :url]
              :url-param [:data :url-param]
-             :selector [[:div.add_list.add_type4]]
+             :selector [:div.add_list.add_type4]
              :fields-meta [:conf :field-metas :irr-list]}}
      ;{:func :scrape-items
      ; :args {:n 5}}
