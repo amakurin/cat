@@ -36,7 +36,7 @@
       :processors [{:func :as-text}]
       }
      {:id :address
-      :selector [:span.text-user-address]
+      :selector [:span.address-text]
       :processors [{:func :as-text}]
       }
      {:id :person-name
