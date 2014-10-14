@@ -23,11 +23,11 @@
     :avito-item
     [
      {:id :description
-      :selector [:div.description-wrapper]
+      :selector [:div.description-preview-wrapper]
       :processors [{:func :as-text}]
       }
      {:id :phone
-      :selector [:div.description-wrapper]
+      :selector [:div.description-preview-wrapper]
       :processors [{:func :as-text}
                    {:func :get-phones}]
       }
