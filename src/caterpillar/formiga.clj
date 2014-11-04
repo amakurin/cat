@@ -28,12 +28,15 @@
                      (mapcat (fn [[k [f t]]] [[[k false] f]
                                               [[k true] t]
                                               [[k nil] 0]]))
-                     (into {}))]
+                     (into {}))
+        price-bounds (or (get price-bounds (:appartment-type input)) (:common price-bounds))
+        bad-code? (->> input :phone (some #(.startsWith (or % "") "999")))]
     (->> rate-weights
          keys
          (map (fn [k] [k (k input)]))
          (map #(get weights %))
          (reduce +)
+         (#(+ % (if bad-code? 0.5 0)))
          (#(+ % (check-bounds multi-phone-bounds (-> input :phone count))))
          (#(+ % (check-bounds img-count-bounds (-> input :imgs count))))
          (#(+ % (check-bounds price-bounds (if (number? (:price input))(:price input) -1))))
