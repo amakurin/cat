@@ -36,7 +36,7 @@
          (map (fn [k] [k (k input)]))
          (map #(get weights %))
          (reduce +)
-         (#(+ % (if bad-code? 0.5 0)))
+         (#(+ % (if bad-code? 0.9 0)))
          (#(+ % (check-bounds multi-phone-bounds (-> input :phone count))))
          (#(+ % (check-bounds img-count-bounds (-> input :imgs count))))
          (#(+ % (check-bounds price-bounds (if (number? (:price input))(:price input) -1))))
