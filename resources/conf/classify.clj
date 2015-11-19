@@ -5,8 +5,8 @@
  :appearance-bounds {:owner [-999999 2]
                      :suspect [2 3]
                      :agent [3 999999]}
- :multi-phone-bounds {0 [-999 2]
-                      0.3 [2 3]
+ :multi-phone-bounds {0 [-999 1]
+                      0.3 [1 2]
                       0.5 [3 9999]}
  :img-count-bounds {0.3 [-999 1]
                     0.35 [1 2]
