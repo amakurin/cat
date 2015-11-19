@@ -1,6 +1,6 @@
   {:field-metas
    {:avito-list
-    [{:id :url
+    [{:id :url 
       :selector [:a.item-link]
       :processors [{:func :get-attribute
                     :args {:attr :href}}]}
