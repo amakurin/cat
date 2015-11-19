@@ -98,25 +98,28 @@
 (defn do-http-get [url opts]
   (let [{:keys [proxy-host proxy-port proxy-creds] :as prox} (current-proxy)
         proxy-opts (when (and prox proxy-host) (select-keys prox [:proxy-host :proxy-port]))
-;;         proxy-headers (when proxy-creds
-;;                         {"Proxy-Authorization"
-;;                          (str "Basic "
-;;                               (String. (Base64/encodeBase64 (.getBytes proxy-creds))))})
         {:keys [headers] :as opts} (if proxy-opts (merge opts proxy-opts {:insecure? true}) opts)
-;;         opts (if proxy-headers (merge opts {:headers (merge headers proxy-headers)}) opts)
-        ]
+        opts (assoc opts :headers (merge headers
+                                         {"User-Agent" "Mozilla/5.0 (Windows NT 6.1;) Gecko/20100101 Firefox/13.0.1"}))]
     (httpc/get url opts)))
 
-;; (let [cnt (create-context {:prox {:proxy-host "78.46.210.21"
-;;   :proxy-port 3128
-;;   :proxy-creds "caterpillarrobot:123QWEas"
-;;   }})]
-;;   (current-proxy)
-;; (do-http-get
-;;  "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=1"
-;;  {:as :auto}
-;;  )
-;;   )
+ #_(let [cnt (create-context {:prox {:proxy-host "78.46.210.21"
+   :proxy-port 3128
+   :proxy-creds "caterpillarrobot:123QWEas"
+   }})]
+   (current-proxy)
+ (do-http-get
+  "https://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=1"
+  {:as :auto}
+  )
+   )
+
+#_(httpc/head
+    "http://m.avito.ru/samara/komnaty/sdam/na_dlitelnyy_srok?page=1"
+    {:headers
+     {"User-Agent" "Mozilla/5.0 (Windows NT 6.1;) Gecko/20100101 Firefox/13.0.1"
+      }
+     })
 
 ;; (httpc/get "https://floor16.ru"
 ;;            {:as :auto
