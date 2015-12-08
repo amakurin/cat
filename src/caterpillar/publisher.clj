@@ -129,7 +129,7 @@
                           sys] :as opts}]
   (let [{:keys [persistent-fields] :as conf} (sys/get-config-data sys)
         cities (sys/get-state sys :cities)]
-    (doseq [{:keys [id] :as ad} (select storage-entity-src (where {:published 0 :verdict [<= 0]}))]
+    (doseq [{:keys [id] :as ad} (select storage-entity-src (where {:published 0 :verdict 0}))]
       (err/with-try
        {:link id :step :publish}
        (let [prepared (prepare-pub ad conf cities)]
