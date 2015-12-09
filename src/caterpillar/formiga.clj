@@ -138,6 +138,7 @@
   (locking (get-lock task-id)
     (ti/info "Formiga " task-id " got lock... ")						  
     (let [ads (classify opts)]
+      (ti/info "Formiga " task-id " selected " (count ads) " ads... ")						  
       (doseq [ad ads]
         (when (and (= 10 (:verdict ad)) (= 0 (:agent-phones ad)) (not (get-in ad [:extracted :absurd-phone])))
           (push-agent ad)
