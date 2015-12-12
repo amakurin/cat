@@ -22,8 +22,12 @@
 
     :avito-item
     [
+     {:id :description-table
+      :selector [:div.description-preview-wrapper :section.description-params]
+      :processors [{:func :as-text}]
+      }
      {:id :description
-      :selector [:div.description-preview-wrapper]
+      :selector [:div.description-preview-wrapper :p]
       :processors [{:func :as-text}]
       }
      {:id :phone

@@ -262,7 +262,7 @@
   :exclude
   #{:url :src-id :target}
   :include-origin
-  #{:description}
+  #{:description :description-table}
   }
 
  :grammar
